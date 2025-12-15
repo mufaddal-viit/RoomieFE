@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { storage } from '@/lib/storage';
 import { Roommate, Expense } from '@/lib/types';
-import { LogOut, Plus, DollarSign, TrendingUp, Clock } from 'lucide-react';
+import { Plus, DollarSign, TrendingUp, Clock } from 'lucide-react';
 import ExpenseList from '@/components/ExpenseList';
 import ExpenseStats from '@/components/ExpenseStats';
 import StatsCard from '@/components/StatsCard';
-import Header from '@/components/Header';
+import Layout from '@/components/Layout';
+import { Button } from '@/components/ui/button';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -52,12 +52,6 @@ const Dashboard = () => {
     load();
   }, [navigate]);
 
-  const handleLogout = () => {
-    storage.clearCurrentUser();
-    storage.clearCurrentRoom();
-    navigate('/');
-  };
-
   const approvedExpenses = expenses.filter(e => e.status === 'approved');
   const totalExpense = approvedExpenses.reduce((sum, e) => sum + e.amount, 0);
   const perPersonShare = roommates.length > 0 ? totalExpense / roommates.length : 0;
@@ -66,74 +60,66 @@ const Dashboard = () => {
   if (!currentUser || loading) return null;
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header
-        title="Expense Tracker"
-        subtitle={
-          <>
-            Welcome, {currentUser.name}
-            {currentUser.isManager && ' (Manager)'}
-          </>
-        }
-        actions={
-          <Button onClick={handleLogout} variant="outline" size="sm">
-            <LogOut className="h-4 w-4 mr-2" />
-            Logout
+    <Layout
+      title="Expense Tracker"
+      subtitle={
+        <>
+          Welcome, {currentUser.name}
+          {currentUser.isManager && ' (Manager)'}
+        </>
+      }
+      isManager={!!currentUser.isManager}
+      userName={currentUser.name}
+      contentClassName="space-y-6"
+    >
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <StatsCard
+          title="Total Room Expense"
+          value={`$${totalExpense.toFixed(2)}`}
+          description="This month's approved expenses"
+          icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
+        />
+        <StatsCard
+          title="Your Share"
+          value={`$${perPersonShare.toFixed(2)}`}
+          description={`Split equally among ${roommates.length} people`}
+          icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
+        />
+        <StatsCard
+          title="Pending Approvals"
+          value={pendingCount.toString()}
+          description="Waiting for manager approval"
+          icon={<Clock className="h-4 w-4 text-muted-foreground" />}
+        />
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        <Button onClick={() => navigate('/add-expense')}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Expense
+        </Button>
+        {currentUser.isManager && (
+          <Button onClick={() => navigate('/approvals')} variant="secondary">
+            Manage Approvals ({pendingCount})
           </Button>
-        }
-      />
+        )}
+        <Button onClick={() => navigate('/analytics')} variant="outline">
+          View Analytics
+        </Button>
 
-      <main className="container mx-auto px-4 py-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <StatsCard
-            title="Total Room Expense"
-            value={`$${totalExpense.toFixed(2)}`}
-            description="This month's approved expenses"
-            icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
-          />
-          <StatsCard
-            title="Your Share"
-            value={`$${perPersonShare.toFixed(2)}`}
-            description={`Split equally among ${roommates.length} people`}
-            icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
-          />
-          <StatsCard
-            title="Pending Approvals"
-            value={pendingCount.toString()}
-            description="Waiting for manager approval"
-            icon={<Clock className="h-4 w-4 text-muted-foreground" />}
-          />
-        </div>
+        <Button onClick={() => navigate('/personal')} variant="outline">
+          Personal Expense
+        </Button>
 
-        <div className="flex gap-4">
-          <Button onClick={() => navigate('/add-expense')}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Expense
-          </Button>
-          {currentUser.isManager && (
-            <Button onClick={() => navigate('/approvals')} variant="secondary">
-              Manage Approvals ({pendingCount})
-            </Button>
-          )}
-          <Button onClick={() => navigate('/analytics')} variant="outline">
-            View Analytics
-          </Button>
+        <Button onClick={() => navigate('/namaz')} variant="outline">
+          Update Namaz
+        </Button>
+      </div>
 
-          <Button onClick={() => navigate('/personal')} variant="outline">
-            Personal Expense
-          </Button>
+      <ExpenseStats expenses={approvedExpenses} roommates={roommates} />
 
-          <Button onClick={() => navigate('/namaz')} variant="outline">
-            Update Namaz
-          </Button>
-
-        </div>
-
-        <ExpenseStats expenses={approvedExpenses} roommates={roommates} />
-
-        <ExpenseList expenses={expenses} />
-      </main>
-    </div>
+      <ExpenseList expenses={expenses} />
+    </Layout>
   );
 };
 
