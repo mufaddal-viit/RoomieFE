@@ -9,6 +9,8 @@ import Dashboard from "./pages/Dashboard";
 import AddExpense from "./pages/AddExpense";
 import Approvals from "./pages/Approvals";
 import Analytics from "./pages/Analytics";
+import Personal from "./pages/Personal";
+import Namaz from "./pages/Namaz";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +29,8 @@ const App = () => (
           <Route path="/add-expense" element={<AddExpense />} />
           <Route path="/approvals" element={<Approvals />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/personal" element={<Personal />} />
+          <Route path="/namaz" element={<Namaz />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
