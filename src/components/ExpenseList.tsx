@@ -51,12 +51,12 @@ const ExpenseList = ({ expenses }: ExpenseListProps) => {
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Added by {expense.addedByName} on{' '}
+                    Added by {expense.addedByName || 'Unknown'} on{' '}
                     {new Date(expense.date).toLocaleDateString()}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-bold">₹{expense.amount.toFixed(2)}</p>
+                  <p className="text-lg font-bold">${expense.amount.toFixed(2)}</p>
                 </div>
               </div>
             ))

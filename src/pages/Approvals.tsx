@@ -12,68 +12,75 @@ const Approvals = () => {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<Roommate | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [roomId, setRoomId] = useState<string | null>(null);
 
   useEffect(() => {
-    const userId = storage.getCurrentUser();
-    if (!userId) {
-      navigate('/');
-      return;
-    }
+    const load = async () => {
+      const userId = storage.getCurrentUser();
+      const activeRoom = storage.getCurrentRoom();
+      if (!userId || !activeRoom) {
+        navigate('/');
+        return;
+      }
 
-    const allRoommates = storage.getRoommates();
-    const user = allRoommates.find(r => r.id === userId);
-    if (!user || !user.isManager) {
-      navigate('/dashboard');
-      return;
-    }
+      try {
+        const roommates = await storage.getRoommates(activeRoom);
+        const user = roommates.find(r => r.id === userId);
+        if (!user || !user.isManager) {
+          navigate('/dashboard');
+          return;
+        }
 
-    setCurrentUser(user);
-    setExpenses(storage.getExpenses());
+        const roomExpenses = await storage.getExpenses(activeRoom);
+        setCurrentUser(user);
+        setRoomId(activeRoom);
+        setExpenses(roomExpenses);
+      } catch (error) {
+        console.error(error);
+        navigate('/');
+      }
+    };
+
+    load();
   }, [navigate]);
 
   const handleApprove = (expenseId: string) => {
     if (!currentUser) return;
 
-    const updatedExpenses = expenses.map(exp =>
-      exp.id === expenseId
-        ? {
-            ...exp,
-            status: 'approved' as const,
-            approvedBy: currentUser.id,
-            approvedByName: currentUser.name,
-            approvedAt: new Date().toISOString(),
-          }
-        : exp
-    );
-
-    storage.setExpenses(updatedExpenses);
-    setExpenses(updatedExpenses);
-    toast.success('Expense approved successfully');
+    storage
+      .updateExpenseStatus(expenseId, 'approved', currentUser.id)
+      .then((updated) => {
+        setExpenses(prev =>
+          prev.map(exp => (exp.id === expenseId ? { ...exp, ...updated } : exp))
+        );
+        toast.success('Expense approved successfully');
+      })
+      .catch(err => {
+        const message = err instanceof Error ? err.message : 'Failed to approve expense';
+        toast.error(message);
+      });
   };
 
   const handleReject = (expenseId: string) => {
     if (!currentUser) return;
 
-    const updatedExpenses = expenses.map(exp =>
-      exp.id === expenseId
-        ? {
-            ...exp,
-            status: 'rejected' as const,
-            approvedBy: currentUser.id,
-            approvedByName: currentUser.name,
-            approvedAt: new Date().toISOString(),
-          }
-        : exp
-    );
-
-    storage.setExpenses(updatedExpenses);
-    setExpenses(updatedExpenses);
-    toast.error('Expense rejected');
+    storage
+      .updateExpenseStatus(expenseId, 'rejected', currentUser.id)
+      .then((updated) => {
+        setExpenses(prev =>
+          prev.map(exp => (exp.id === expenseId ? { ...exp, ...updated } : exp))
+        );
+        toast.error('Expense rejected');
+      })
+      .catch(err => {
+        const message = err instanceof Error ? err.message : 'Failed to reject expense';
+        toast.error(message);
+      });
   };
 
   const pendingExpenses = expenses.filter(e => e.status === 'pending');
 
-  if (!currentUser) return null;
+  if (!currentUser || !roomId) return null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -107,7 +114,7 @@ const Approvals = () => {
                           <Badge variant="secondary">{expense.category}</Badge>
                         </div>
                         <div className="text-sm text-muted-foreground space-y-1">
-                          <p>Added by: {expense.addedByName}</p>
+                          <p>Added by: {expense.addedByName || 'Unknown'}</p>
                           <p>Date: {new Date(expense.date).toLocaleDateString()}</p>
                         </div>
                       </div>
@@ -119,7 +126,8 @@ const Approvals = () => {
                           <Button
                             onClick={() => handleApprove(expense.id)}
                             size="sm"
-                            className="bg-success hover:bg-success/90"
+                            className="bg-success hover:bg-success/90 text-black"
+                            variant='outline'
                           >
                             <Check className="h-4 w-4 mr-1" />
                             Approve
@@ -127,7 +135,7 @@ const Approvals = () => {
                           <Button
                             onClick={() => handleReject(expense.id)}
                             size="sm"
-                            variant="destructive"
+                            variant="outline"
                           >
                             <X className="h-4 w-4 mr-1" />
                             Reject

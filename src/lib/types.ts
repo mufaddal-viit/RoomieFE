@@ -1,7 +1,11 @@
 export interface Roommate {
   id: string;
   name: string;
+  email?: string;
+  password?: string;
   isManager: boolean;
+  roomId: string;
+  room?: Room;
 }
 
 export interface Expense {
@@ -9,11 +13,12 @@ export interface Expense {
   description: string;
   amount: number;
   category: string;
-  addedBy: string;
-  addedByName: string;
+  addedById: string;
+  addedByName?: string;
   date: string;
+  roomId: string;
   status: 'pending' | 'approved' | 'rejected';
-  approvedBy?: string;
+  approvedById?: string;
   approvedByName?: string;
   approvedAt?: string;
 }
@@ -31,3 +36,11 @@ export const EXPENSE_CATEGORIES = [
 ] as const;
 
 export type ExpenseCategory = typeof EXPENSE_CATEGORIES[number];
+
+export interface Room {
+  id: string;
+  name: string;
+  inviteCode: string;
+  createdAt: string;
+  updatedAt: string;
+}

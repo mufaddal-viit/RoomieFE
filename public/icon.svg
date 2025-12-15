@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- ROOM (house) -->
+  <path d="M10 28 L32 10 L54 28" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M16 26 V52 H48 V26" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- BILL (receipt) inside house -->
+  <path d="M24 24
+           H44
+           V43
+           L42 41 L40 43 L38 41 L36 43 L34 41 L32 43 L30 41 L28 43 L26 41 L24 43
+           V24 Z"
+        stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/>
+
+  <!-- Receipt lines -->
+  <path d="M28 29 H40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  <path d="M28 34 H38" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  <path d="M28 39 H36" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+</svg>

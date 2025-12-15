@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,25 +17,35 @@ const AddExpense = () => {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
+  const [roomId, setRoomId] = useState<string | null>(null);
 
   useEffect(() => {
-    const userId = storage.getCurrentUser();
-    if (!userId) {
-      navigate('/');
-      return;
-    }
+    const load = async () => {
+      const userId = storage.getCurrentUser();
+      const activeRoom = storage.getCurrentRoom();
+      if (!userId || !activeRoom) {
+        navigate('/');
+        return;
+      }
 
-    const allRoommates = storage.getRoommates();
-    const user = allRoommates.find(r => r.id === userId);
-    if (!user) {
-      navigate('/');
-      return;
-    }
-
-    setCurrentUser(user);
+      try {
+        const roommates = await storage.getRoommates(activeRoom);
+        const user = roommates.find(r => r.id === userId);
+        if (!user) {
+          navigate('/');
+          return;
+        }
+        setCurrentUser(user);
+        setRoomId(activeRoom);
+      } catch (error) {
+        console.error(error);
+        navigate('/');
+      }
+    };
+    load();
   }, [navigate]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
     if (!currentUser || !description.trim() || !amount || !category) {
@@ -43,21 +53,27 @@ const AddExpense = () => {
       return;
     }
 
-    const expenses = storage.getExpenses();
-    const newExpense = {
-      id: `expense-${Date.now()}`,
+    if (!roomId) {
+      toast.error('No active room found');
+      return;
+    }
+
+    storage.createExpense({
+      roomId,
       description: description.trim(),
       amount: parseFloat(amount),
       category,
-      addedBy: currentUser.id,
-      addedByName: currentUser.name,
       date: new Date().toISOString(),
-      status: 'pending' as const,
-    };
-
-    storage.setExpenses([...expenses, newExpense]);
-    toast.success('Expense added successfully! Waiting for manager approval.');
-    navigate('/dashboard');
+      addedById: currentUser.id,
+    })
+      .then(() => {
+        toast.success('Expense added successfully! Waiting for manager approval.');
+        navigate('/dashboard');
+      })
+      .catch(err => {
+        const message = err instanceof Error ? err.message : 'Failed to add expense';
+        toast.error(message);
+      });
   };
 
   if (!currentUser) return null;

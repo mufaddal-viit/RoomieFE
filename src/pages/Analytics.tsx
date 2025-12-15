@@ -13,14 +13,26 @@ const Analytics = () => {
   const [roommates, setRoommates] = useState<Roommate[]>([]);
 
   useEffect(() => {
-    const userId = storage.getCurrentUser();
-    if (!userId) {
-      navigate('/');
-      return;
-    }
+    const load = async () => {
+      const roomId = storage.getCurrentRoom();
+      if (!roomId) {
+        navigate('/');
+        return;
+      }
+      try {
+        const [roomExpenses, currentRoommates] = await Promise.all([
+          storage.getExpenses(roomId),
+          storage.getRoommates(roomId),
+        ]);
+        setExpenses(roomExpenses);
+        setRoommates(currentRoommates);
+      } catch (error) {
+        console.error(error);
+        navigate('/');
+      }
+    };
 
-    setExpenses(storage.getExpenses());
-    setRoommates(storage.getRoommates());
+    load();
   }, [navigate]);
 
   const approvedExpenses = expenses.filter(e => e.status === 'approved');
@@ -37,7 +49,8 @@ const Analytics = () => {
 
   // Person breakdown
   const personTotals = approvedExpenses.reduce((acc, exp) => {
-    acc[exp.addedByName] = (acc[exp.addedByName] || 0) + exp.amount;
+    const name = exp.addedByName || 'Unknown';
+    acc[name] = (acc[name] || 0) + exp.amount;
     return acc;
   }, {} as Record<string, number>);
 

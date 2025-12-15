@@ -60,6 +60,17 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Database (Prisma + MongoDB)
+
+- Ensure `.env` contains `DATABASE_URL` (see `.env.example` for the format).
+- Frontend API calls proxy to `VITE_API_BASE_URL` (defaults to `/api` -> `http://localhost:4000/api` via Vite proxy). Set `VITE_DEFAULT_ROOM_ID` to the room you want to log into by default.
+- Run the API server locally: `npm run dev:server` (listens on `4000`), then start the Vite dev server: `npm run dev`.
+- After installing dependencies, generate the Prisma client: `npm run prisma:generate`.
+- Push the schema to your MongoDB database: `npm run prisma:push`.
+- Seed starter roommates and expenses (idempotent): `npm run prisma:seed`.
+- After seeding, copy the printed room id into `VITE_DEFAULT_ROOM_ID` for quick sign-in buttons.
+- Open Prisma Studio to inspect data: `npm run prisma:studio`.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/0c34f199-3260-4484-8ca8-11f5424a138e) and click on Share -> Publish.

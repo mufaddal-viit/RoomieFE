@@ -13,37 +13,56 @@ const Dashboard = () => {
   const [currentUser, setCurrentUser] = useState<Roommate | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [roommates, setRoommates] = useState<Roommate[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const userId = storage.getCurrentUser();
-    if (!userId) {
-      navigate('/');
-      return;
-    }
+    const load = async () => {
+      const userId = storage.getCurrentUser();
+      const roomId = storage.getCurrentRoom();
+      if (!userId || !roomId) {
+        navigate('/');
+        return;
+      }
 
-    const allRoommates = storage.getRoommates();
-    const user = allRoommates.find(r => r.id === userId);
-    if (!user) {
-      navigate('/');
-      return;
-    }
+      try {
+        setLoading(true);
+        const [allRoommates, roomExpenses] = await Promise.all([
+          storage.getRoommates(roomId),
+          storage.getExpenses(roomId),
+        ]);
 
-    setCurrentUser(user);
-    setRoommates(allRoommates);
-    setExpenses(storage.getExpenses());
+        const user = allRoommates.find(r => r.id === userId);
+        if (!user) {
+          navigate('/');
+          return;
+        }
+
+        setCurrentUser(user);
+        setRoommates(allRoommates);
+        setExpenses(roomExpenses);
+      } catch (error) {
+        console.error(error);
+        navigate('/');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
   }, [navigate]);
 
   const handleLogout = () => {
     storage.clearCurrentUser();
+    storage.clearCurrentRoom();
     navigate('/');
   };
 
   const approvedExpenses = expenses.filter(e => e.status === 'approved');
   const totalExpense = approvedExpenses.reduce((sum, e) => sum + e.amount, 0);
-  const perPersonShare = totalExpense / roommates.length;
+  const perPersonShare = roommates.length > 0 ? totalExpense / roommates.length : 0;
   const pendingCount = expenses.filter(e => e.status === 'pending').length;
 
-  if (!currentUser) return null;
+  if (!currentUser || loading) return null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -67,11 +86,11 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Expense</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Room Expense</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{totalExpense.toFixed(2)}</div>
+              <div className="text-2xl font-bold">${totalExpense.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground">
                 This month's approved expenses
               </p>
@@ -84,7 +103,7 @@ const Dashboard = () => {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{perPersonShare.toFixed(2)}</div>
+              <div className="text-2xl font-bold">${perPersonShare.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground">
                 Split equally among {roommates.length} people
               </p>
