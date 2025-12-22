@@ -8,9 +8,11 @@ import { Label } from '@/components/ui/label';
 import { storage } from '@/lib/storage';
 import { Roommate } from '@/lib/types';
 import { toast } from 'sonner';
+import { useSession } from '@/contexts/SessionContext';
 
 const SignIn = () => {
   const navigate = useNavigate();
+  const { setSession, refreshSession } = useSession();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [roommates, setRoommates] = useState<Roommate[]>([]);
@@ -41,9 +43,12 @@ const SignIn = () => {
     try {
       setLoading(true);
       const user = await storage.authenticate(email, password);
-      storage.setCurrentUser(user.id);
       if (user.roomId) {
-        storage.setCurrentRoom(user.roomId);
+        await setSession(user.id, user.roomId);
+      } else {
+        storage.setCurrentUser(user.id);
+        toast.warning('No room linked to this user. Please join a room.');
+        await refreshSession();
       }
       toast.success(`Welcome back, ${user.name}`);
       navigate('/dashboard');
@@ -55,9 +60,8 @@ const SignIn = () => {
     }
   };
 
-  const handleQuickSelect = (roommate: Roommate) => {
-    storage.setCurrentUser(roommate.id);
-    storage.setCurrentRoom(roommate.roomId);
+  const handleQuickSelect = async (roommate: Roommate) => {
+    await setSession(roommate.id, roommate.roomId);
     toast.success(`Signed in as ${roommate.name}`);
     navigate('/dashboard');
   };

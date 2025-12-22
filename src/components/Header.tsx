@@ -5,7 +5,7 @@ import { Button } from './ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { LogOut } from 'lucide-react';
-import { storage } from '@/lib/storage';
+import { useSession } from '@/contexts/SessionContext';
 
 type HeaderProps = {
   title: string;
@@ -18,10 +18,10 @@ type HeaderProps = {
 const Header = ({ title, subtitle, actions, userName, isManager = false }: HeaderProps) => {
   const navigate = useNavigate();
   const initial = useMemo(() => (userName?.[0]?.toUpperCase() ?? '?'), [userName]);
+  const { clearSession } = useSession();
 
   const handleLogout = () => {
-    storage.clearCurrentUser();
-    storage.clearCurrentRoom();
+    clearSession();
     navigate('/');
   };
   return (

@@ -1,5 +1,8 @@
 import type { ReactNode } from 'react';
 import Header from '@/components/Header';
+import { Button } from './ui/button';
+import { ArrowLeft } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 type LayoutProps = {
   title: string;
@@ -11,10 +14,22 @@ type LayoutProps = {
   isManager?: boolean;
 };
 
+const BackToDashboard = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  if (location.pathname === '/dashboard') return null;
+  return (
+    <Button variant="ghost" onClick={() => navigate('/dashboard')}>
+      <ArrowLeft className="h-4 w-4 mr-2" />
+      Back to Dashboard
+    </Button>
+  );
+};
+
 const Layout = ({
   title,
   subtitle,
-  actions,
+  actions = <BackToDashboard />,
   children,
   contentClassName,
   userName,

@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,49 +7,47 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { storage } from '@/lib/storage';
-import { EXPENSE_CATEGORIES, Roommate } from '@/lib/types';
-import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import Layout from '@/components/Layout';
+import { useSession } from '@/contexts/SessionContext';
+import { expenseFields } from '@/config/expenseFormFields';
 
 const AddExpense = () => {
   const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState<Roommate | null>(null);
-  const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState('');
-  const [roomId, setRoomId] = useState<string | null>(null);
+  const { currentUser, roommates, roomId, loading } = useSession();
+  const initialForm = useMemo(
+    () =>
+      expenseFields.reduce(
+        (acc, field) => {
+          acc[field.name] = '';
+          return acc;
+        },
+        {} as Record<string, string>
+      ),
+    []
+  );
+  const [form, setForm] = useState<Record<string, string>>(initialForm);
 
   useEffect(() => {
-    const load = async () => {
-      const userId = storage.getCurrentUser();
-      const activeRoom = storage.getCurrentRoom();
-      if (!userId || !activeRoom) {
-        navigate('/');
-        return;
-      }
+    if (loading) return;
+    if (!currentUser || !roomId) {
+      navigate('/');
+      return;
+    }
+    setForm(prev => ({ ...prev, memberId: currentUser.id }));
+  }, [currentUser, roomId, loading, navigate]);
 
-      try {
-        const roommates = await storage.getRoommates(activeRoom);
-        const user = roommates.find(r => r.id === userId);
-        if (!user) {
-          navigate('/');
-          return;
-        }
-        setCurrentUser(user);
-        setRoomId(activeRoom);
-      } catch (error) {
-        console.error(error);
-        navigate('/');
-      }
-    };
-    load();
-  }, [navigate]);
+  const { description, amount, category, memberId } = form;
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
-    if (!currentUser || !description.trim() || !amount || !category) {
+    const missingRequired = expenseFields.some(field => {
+      const value = form[field.name];
+      return value === undefined || value === null || `${value}`.trim() === '';
+    });
+
+    if (!currentUser || missingRequired) {
       toast.error('Please fill in all fields');
       return;
     }
@@ -65,7 +63,7 @@ const AddExpense = () => {
       amount: parseFloat(amount),
       category,
       date: new Date().toISOString(),
-      addedById: currentUser.id,
+      addedById: memberId,
     })
       .then(() => {
         toast.success('Expense added successfully! Waiting for manager approval.');
@@ -77,17 +75,11 @@ const AddExpense = () => {
       });
   };
 
-  if (!currentUser) return null;
+  if (!currentUser || !roomId || loading) return null;
 
   return (
     <Layout
       title="Add New Expense"
-      actions={
-        <Button onClick={() => navigate('/dashboard')} variant="ghost" size="sm">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
-        </Button>
-      }
       userName={currentUser.name}
       isManager={!!currentUser.isManager}
       contentClassName="max-w-2xl"
@@ -98,46 +90,53 @@ const AddExpense = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="What was purchased?"
-                required
-              />
-            </div>
+            {expenseFields.map(field => {
+              const value = form[field.name] ?? '';
+              const options = field.getOptions ? field.getOptions(roommates, currentUser?.id) : field.options ?? [];
 
-            <div>
-              <Label htmlFor="amount">Amount ($)</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                min="0"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="category">Category</Label>
-              <Select value={category} onValueChange={setCategory} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {EXPENSE_CATEGORIES.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              return (
+                <div key={field.name}>
+                  <Label htmlFor={field.name}>{field.label}</Label>
+                  {field.type === 'select' ? (
+                    <Select
+                      value={value}
+                      onValueChange={(val) => setForm(prev => ({ ...prev, [field.name]: val }))}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={field.placeholder || 'Select an option'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {options.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : field.type === 'textarea' ? (
+                    <Textarea
+                      id={field.name}
+                      value={value}
+                      onChange={(e) => setForm(prev => ({ ...prev, [field.name]: e.target.value }))}
+                      placeholder={field.placeholder}
+                      required
+                    />
+                  ) : (
+                    <Input
+                      id={field.name}
+                      type={field.type === 'number' ? 'number' : 'text'}
+                      step={field.type === 'number' ? '0.01' : undefined}
+                      min={field.type === 'number' ? '0' : undefined}
+                      value={value}
+                      onChange={(e) => setForm(prev => ({ ...prev, [field.name]: e.target.value }))}
+                      placeholder={field.placeholder}
+                      required
+                    />
+                  )}
+                </div>
+              );
+            })}
 
             <div className="flex gap-3 pt-4">
               <Button type="submit" className="flex-1">

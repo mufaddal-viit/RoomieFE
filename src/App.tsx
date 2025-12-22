@@ -12,32 +12,39 @@ import Analytics from "./pages/Analytics";
 import Personal from "./pages/Personal";
 import Namaz from "./pages/Namaz";
 import AddMember from "./pages/AddMember";
+import Todos from "./pages/Todo";
+import Expenses from "./pages/Expenses";
 import NotFound from "./pages/NotFound";
+import { SessionProvider } from "./contexts/SessionContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<SignIn />} />
-          <Route path="/login" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/add-expense" element={<AddExpense />} />
-          <Route path="/approvals" element={<Approvals />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/add-member" element={<AddMember />} />
-          <Route path="/personal" element={<Personal />} />
-          <Route path="/namaz" element={<Namaz />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <SessionProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<SignIn />} />
+            <Route path="/login" element={<SignIn />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/add-expense" element={<AddExpense />} />
+            <Route path="/approvals" element={<Approvals />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/expenses" element={<Expenses />} />
+            <Route path="/add-member" element={<AddMember />} />
+            <Route path="/todos" element={<Todos />} />
+            <Route path="/personal" element={<Personal />} />
+            <Route path="/namaz" element={<Namaz />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </SessionProvider>
   </QueryClientProvider>
 );
 

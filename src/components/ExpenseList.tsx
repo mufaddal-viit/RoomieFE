@@ -1,12 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Expense } from '@/lib/types';
+import { useNavigate } from 'react-router-dom';
+import { Button } from './ui/button';
 
 interface ExpenseListProps {
   expenses: Expense[];
 }
 
 const ExpenseList = ({ expenses }: ExpenseListProps) => {
+  const navigate = useNavigate();
+
   const sortedExpenses = [...expenses].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
@@ -14,7 +18,16 @@ const ExpenseList = ({ expenses }: ExpenseListProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Expenses</CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle>Recent Expenses</CardTitle>
+          <Button
+            variant='ghost'
+            className="text-sm font-medium text-primary hover:underline"
+            onClick={() => navigate('/expenses')}
+          >
+            View All
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">

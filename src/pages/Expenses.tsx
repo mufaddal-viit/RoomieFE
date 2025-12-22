@@ -1,10 +1,9 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Layout from '@/components/Layout';
 import { useSession } from '@/contexts/SessionContext';
 
-const Namaz = () => {
+const Expenses = () => {
   const navigate = useNavigate();
   const { currentUser, loading, roomId } = useSession();
 
@@ -19,21 +18,14 @@ const Namaz = () => {
 
   return (
     <Layout
-      title="Namaz Tracker"
+      title="All Expenses"
+      subtitle="Full expense history"
       userName={currentUser.name}
       isManager={!!currentUser.isManager}
-      contentClassName="max-w-3xl space-y-4"
-    >
-      <Card>
-        <CardHeader>
-          <CardTitle>Coming Soon</CardTitle>
-        </CardHeader>
-        <CardContent className="text-muted-foreground">
-          This page will let you log daily Namaz progress and view streaks.
-        </CardContent>
-      </Card>
+      contentClassName="max-w-5xl space-y-4" children={''}    >
+      {/* Intentionally left empty; hook up full expense view here. */}
     </Layout>
   );
 };
 
-export default Namaz;
+export default Expenses;

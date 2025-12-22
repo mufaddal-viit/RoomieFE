@@ -1,40 +1,41 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { storage } from '@/lib/storage';
-import { Expense, Roommate } from '@/lib/types';
-import { ArrowLeft, TrendingDown, AlertCircle } from 'lucide-react';
+import { Expense } from '@/lib/types';
+import { TrendingDown } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Layout from '@/components/Layout';
+import { useSession } from '@/contexts/SessionContext';
 
 const Analytics = () => {
   const navigate = useNavigate();
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [roommates, setRoommates] = useState<Roommate[]>([]);
+  const { currentUser, roommates, roomId, loading } = useSession();
+  const [loadingExpenses, setLoadingExpenses] = useState(true);
 
   useEffect(() => {
-    const load = async () => {
-      const roomId = storage.getCurrentRoom();
-      if (!roomId) {
-        navigate('/');
-        return;
-      }
+    if (loading) return;
+    if (!currentUser || !roomId) {
+      navigate('/');
+      return;
+    }
+
+    const loadExpenses = async () => {
       try {
-        const [roomExpenses, currentRoommates] = await Promise.all([
-          storage.getExpenses(roomId),
-          storage.getRoommates(roomId),
-        ]);
+        setLoadingExpenses(true);
+        const roomExpenses = await storage.getExpenses(roomId);
         setExpenses(roomExpenses);
-        setRoommates(currentRoommates);
       } catch (error) {
         console.error(error);
         navigate('/');
+      } finally {
+        setLoadingExpenses(false);
       }
     };
 
-    load();
-  }, [navigate]);
+    loadExpenses();
+  }, [loading, currentUser, roomId, navigate]);
 
   const approvedExpenses = expenses.filter(e => e.status === 'approved');
 
@@ -62,18 +63,14 @@ const Analytics = () => {
   const totalExpense = approvedExpenses.reduce((sum, e) => sum + e.amount, 0);
   const avgExpense = approvedExpenses.length > 0 ? totalExpense / approvedExpenses.length : 0;
 
+  if (!currentUser || loading || loadingExpenses) return null;
+
   return (
     <Layout
       title="Expense Analytics"
       subtitle="Insights to help reduce spending"
-      actions={
-        <Button onClick={() => navigate('/dashboard')} variant="ghost" size="sm">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
-        </Button>
-      }
-      userName={roommates.find(r => r.isManager)?.name ?? roommates[0]?.name}
-      isManager={!!roommates.find(r => r.isManager)}
+      userName={currentUser.name}
+      isManager={!!currentUser.isManager}
       contentClassName="max-w-6xl space-y-6"
     >
       <Alert>

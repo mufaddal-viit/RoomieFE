@@ -1,24 +1,27 @@
-import { Button } from '@/components/ui/button';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Layout from '@/components/Layout';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import { storage } from '@/lib/storage';
+import { useSession } from '@/contexts/SessionContext';
 
 const Personal = () => {
   const navigate = useNavigate();
+  const { currentUser, loading, roomId } = useSession();
+
+  useEffect(() => {
+    if (loading) return;
+    if (!currentUser || !roomId) {
+      navigate('/');
+    }
+  }, [loading, currentUser, roomId, navigate]);
+
+  if (!currentUser || loading) return null;
 
   return (
     <Layout
       title="Personal Expenses"
-      actions={
-        <Button variant="ghost" onClick={() => navigate('/dashboard')}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
-        </Button>
-      }
-      userName={storage.getCurrentUser() || undefined}
-      isManager={false}
+      userName={currentUser.name}
+      isManager={!!currentUser.isManager}
       contentClassName="max-w-3xl space-y-4"
     >
       <Card>

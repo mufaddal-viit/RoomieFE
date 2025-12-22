@@ -1,63 +1,50 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { storage } from '@/lib/storage';
-import { Roommate, Expense } from '@/lib/types';
+import { Expense } from '@/lib/types';
 import { Plus, DollarSign, TrendingUp, Clock } from 'lucide-react';
 import ExpenseList from '@/components/ExpenseList';
 import ExpenseStats from '@/components/ExpenseStats';
 import StatsCard from '@/components/StatsCard';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
+import { useSession } from '@/contexts/SessionContext';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState<Roommate | null>(null);
+  const { currentUser, roommates, roomId, loading: sessionLoading } = useSession();
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [roommates, setRoommates] = useState<Roommate[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingExpenses, setLoadingExpenses] = useState(true);
 
   useEffect(() => {
-    const load = async () => {
-      const userId = storage.getCurrentUser();
-      const roomId = storage.getCurrentRoom();
-      if (!userId || !roomId) {
-        navigate('/');
-        return;
-      }
+    if (sessionLoading) return;
+    if (!currentUser || !roomId) {
+      navigate('/');
+      return;
+    }
 
+    const loadExpenses = async () => {
       try {
-        setLoading(true);
-        const [allRoommates, roomExpenses] = await Promise.all([
-          storage.getRoommates(roomId),
-          storage.getExpenses(roomId),
-        ]);
-
-        const user = allRoommates.find(r => r.id === userId);
-        if (!user) {
-          navigate('/');
-          return;
-        }
-
-        setCurrentUser(user);
-        setRoommates(allRoommates);
+        setLoadingExpenses(true);
+        const roomExpenses = await storage.getExpenses(roomId);
         setExpenses(roomExpenses);
       } catch (error) {
         console.error(error);
         navigate('/');
       } finally {
-        setLoading(false);
+        setLoadingExpenses(false);
       }
     };
 
-    load();
-  }, [navigate]);
+    loadExpenses();
+  }, [sessionLoading, currentUser, roomId, navigate]);
 
   const approvedExpenses = expenses.filter(e => e.status === 'approved');
   const totalExpense = approvedExpenses.reduce((sum, e) => sum + e.amount, 0);
   const perPersonShare = roommates.length > 0 ? totalExpense / roommates.length : 0;
   const pendingCount = expenses.filter(e => e.status === 'pending').length;
 
-  if (!currentUser || loading) return null;
+  if (!currentUser || sessionLoading || loadingExpenses) return null;
 
   return (
     <Layout
@@ -113,6 +100,10 @@ const Dashboard = () => {
 
         <Button onClick={() => navigate('/namaz')} variant="outline">
           Update Namaz
+        </Button>
+
+        <Button onClick={() => navigate('/todos')} variant="outline">
+          Personal Todos
         </Button>
       </div>
 

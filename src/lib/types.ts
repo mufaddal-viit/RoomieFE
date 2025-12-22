@@ -23,19 +23,19 @@ export interface Expense {
   approvedAt?: string;
 }
 
-export const EXPENSE_CATEGORIES = [
-  'Food',
-  'Utilities',
-  'Cleaning Supplies',
-  'Internet',
-  'Electricity',
-  'Water',
-  'Gas',
-  'Maintenance',
-  'Other',
-] as const;
+// export const EXPENSE_CATEGORIES = [
+//   'Food',
+//   'Utilities',
+//   'Cleaning Supplies',
+//   'Internet',
+//   'Electricity',
+//   'Water',
+//   'Gas',
+//   'Maintenance',
+//   'Other',
+// ] as const;
 
-export type ExpenseCategory = typeof EXPENSE_CATEGORIES[number];
+// export type ExpenseCategory = typeof EXPENSE_CATEGORIES[number];
 
 export interface Room {
   id: string;

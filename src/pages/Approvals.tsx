@@ -4,37 +4,31 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { storage } from '@/lib/storage';
-import { Roommate, Expense } from '@/lib/types';
-import { ArrowLeft, Check, X } from 'lucide-react';
+import { Expense } from '@/lib/types';
+import { Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 import Layout from '@/components/Layout';
+import { useSession } from '@/contexts/SessionContext';
 
 const Approvals = () => {
   const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState<Roommate | null>(null);
+  const { currentUser, roomId, loading } = useSession();
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [roomId, setRoomId] = useState<string | null>(null);
 
   useEffect(() => {
-    const load = async () => {
-      const userId = storage.getCurrentUser();
-      const activeRoom = storage.getCurrentRoom();
-      if (!userId || !activeRoom) {
-        navigate('/');
-        return;
-      }
+    if (loading) return;
+    if (!currentUser || !roomId) {
+      navigate('/');
+      return;
+    }
+    if (!currentUser.isManager) {
+      navigate('/dashboard');
+      return;
+    }
 
+    const loadExpenses = async () => {
       try {
-        const roommates = await storage.getRoommates(activeRoom);
-        const user = roommates.find(r => r.id === userId);
-        if (!user || !user.isManager) {
-          navigate('/dashboard');
-          return;
-        }
-
-        const roomExpenses = await storage.getExpenses(activeRoom);
-        setCurrentUser(user);
-        setRoomId(activeRoom);
+        const roomExpenses = await storage.getExpenses(roomId);
         setExpenses(roomExpenses);
       } catch (error) {
         console.error(error);
@@ -42,8 +36,8 @@ const Approvals = () => {
       }
     };
 
-    load();
-  }, [navigate]);
+    loadExpenses();
+  }, [loading, currentUser, roomId, navigate]);
 
   const handleApprove = (expenseId: string) => {
     if (!currentUser) return;
@@ -81,18 +75,12 @@ const Approvals = () => {
 
   const pendingExpenses = expenses.filter(e => e.status === 'pending');
 
-  if (!currentUser || !roomId) return null;
+  if (!currentUser || !roomId || loading) return null;
 
   return (
     <Layout
       title="Pending Approvals"
       subtitle={`Pending items: ${pendingExpenses.length}`}
-      actions={
-        <Button onClick={() => navigate('/dashboard')} variant="ghost" size="sm">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
-        </Button>
-      }
       isManager={!!currentUser.isManager}
       userName={currentUser.name}
       contentClassName="max-w-4xl"
