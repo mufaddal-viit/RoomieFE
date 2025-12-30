@@ -8,7 +8,7 @@ import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import AddExpense from "./pages/AddExpense";
 import Approvals from "./pages/Approvals";
-import Analytics from "./pages/Analytics";
+import OneToOne from "./pages/OneToOne";
 import Personal from "./pages/Personal";
 import Namaz from "./pages/Namaz";
 import AddMember from "./pages/AddMember";
@@ -33,7 +33,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/add-expense" element={<AddExpense />} />
             <Route path="/approvals" element={<Approvals />} />
-            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/one-to-one" element={<OneToOne />} />
             <Route path="/expenses" element={<Expenses />} />
             <Route path="/add-member" element={<AddMember />} />
             <Route path="/todos" element={<Todos />} />

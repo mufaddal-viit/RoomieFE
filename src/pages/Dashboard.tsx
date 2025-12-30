@@ -9,6 +9,7 @@ import StatsCard from '@/components/StatsCard';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { useSession } from '@/contexts/SessionContext';
+import Analytics from './Analytics';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -90,8 +91,8 @@ const Dashboard = () => {
             Manage Approvals ({pendingCount})
           </Button>
         )}
-        <Button onClick={() => navigate('/analytics')} variant="outline">
-          View Analytics
+        <Button onClick={() => navigate('/one-to-one')} variant="outline">
+          One to One Expense
         </Button>
 
         <Button onClick={() => navigate('/personal')} variant="outline">
@@ -107,7 +108,8 @@ const Dashboard = () => {
         </Button>
       </div>
 
-      <ExpenseStats expenses={approvedExpenses} roommates={roommates} />
+      {/* <ExpenseStats expenses={approvedExpenses} roommates={roommates} /> */}
+      <Analytics />
 
       <ExpenseList expenses={expenses} />
     </Layout>
