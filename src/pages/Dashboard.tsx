@@ -2,14 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { storage } from '@/lib/storage';
 import { Expense } from '@/lib/types';
-import { Plus, DollarSign, TrendingUp, Clock } from 'lucide-react';
 import ExpenseList from '@/components/ExpenseList';
-import ExpenseStats from '@/components/ExpenseStats';
 import StatsCard from '@/components/StatsCard';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { useSession } from '@/contexts/SessionContext';
 import Analytics from './Analytics';
+import { dashboardStats } from '@/config/dashboardStats';
+import { dashboardMenuItems } from '@/config/dashboardMenuItems';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -44,6 +44,16 @@ const Dashboard = () => {
   const totalExpense = approvedExpenses.reduce((sum, e) => sum + e.amount, 0);
   const perPersonShare = roommates.length > 0 ? totalExpense / roommates.length : 0;
   const pendingCount = expenses.filter(e => e.status === 'pending').length;
+  const statsInput = {
+    totalExpense,
+    perPersonShare,
+    pendingCount,
+    roommatesCount: roommates.length,
+  };
+  const menuInput = {
+    pendingCount,
+    isManager: !!currentUser?.isManager,
+  };
 
   if (!currentUser || sessionLoading || loadingExpenses) return null;
 
@@ -61,51 +71,37 @@ const Dashboard = () => {
       contentClassName="space-y-6"
     >
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatsCard
-          title="Total Room Expense"
-          value={`$${totalExpense.toFixed(2)}`}
-          description="This month's approved expenses"
-          icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
-        />
-        <StatsCard
-          title="Your Share"
-          value={`$${perPersonShare.toFixed(2)}`}
-          description={`Split equally among ${roommates.length} people`}
-          icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
-        />
-        <StatsCard
-          title="Pending Approvals"
-          value={pendingCount.toString()}
-          description="Waiting for manager approval"
-          icon={<Clock className="h-4 w-4 text-muted-foreground" />}
-        />
+        {dashboardStats.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <StatsCard
+              key={stat.title}
+              title={stat.title}
+              value={stat.value(statsInput)}
+              description={stat.description(statsInput)}
+              icon={<Icon className="h-4 w-4 text-muted-foreground" />}
+            />
+          );
+        })}
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <Button onClick={() => navigate('/add-expense')}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Expense
-        </Button>
-        {currentUser.isManager && (
-          <Button onClick={() => navigate('/approvals')} variant="secondary">
-            Manage Approvals ({pendingCount})
-          </Button>
-        )}
-        <Button onClick={() => navigate('/one-to-one')} variant="outline">
-          One to One Expense
-        </Button>
-
-        <Button onClick={() => navigate('/personal')} variant="outline">
-          Personal Expense
-        </Button>
-
-        <Button onClick={() => navigate('/namaz')} variant="outline">
-          Update Namaz
-        </Button>
-
-        <Button onClick={() => navigate('/todos')} variant="outline">
-          Personal Todos
-        </Button>
+        {dashboardMenuItems
+          .filter(item => !item.requiresManager || menuInput.isManager)
+          .map((item) => {
+            const label = typeof item.label === 'function' ? item.label(menuInput) : item.label;
+            const Icon = item.icon;
+            return (
+              <Button
+                key={item.path}
+                onClick={() => navigate(item.path)}
+                variant={item.variant ?? 'outline'}
+              >
+                {Icon && <Icon className="h-4 w-4 mr-2" />}
+                {label}
+              </Button>
+            );
+          })}
       </div>
 
       {/* <ExpenseStats expenses={approvedExpenses} roommates={roommates} /> */}

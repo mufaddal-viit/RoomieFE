@@ -51,6 +51,90 @@ All colors MUST be HSL.
     --chart-5: 340 75% 55%;
   }
 
+  .theme-ocean {
+    --background: 212 30% 82%;
+    --foreground: 212 45% 12%;
+
+    --card: 210 30% 96%;
+    --card-foreground: 212 45% 12%;
+
+    --popover: 210 30% 96%;
+    --popover-foreground: 212 45% 12%;
+
+    --primary: 205 92% 35%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 35% 82%;
+    --secondary-foreground: 212 45% 12%;
+
+    --muted: 210 30% 85%;
+    --muted-foreground: 212 20% 35%;
+
+    --accent: 206 55% 78%;
+    --accent-foreground: 212 45% 12%;
+
+    --destructive: 0 78% 45%;
+    --destructive-foreground: 0 0% 98%;
+
+    --success: 160 50% 35%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 85% 45%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 210 25% 75%;
+    --input: 210 25% 75%;
+    --ring: 205 92% 35%;
+
+    --chart-1: 205 92% 35%;
+    --chart-2: 192 75% 35%;
+    --chart-3: 220 70% 45%;
+    --chart-4: 200 65% 40%;
+    --chart-5: 230 60% 50%;
+  }
+
+  .theme-sand {
+    --background: 36 50% 96%;
+    --foreground: 25 25% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 25 25% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 25 25% 12%;
+
+    --primary: 18 80% 48%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 35 35% 90%;
+    --secondary-foreground: 25 25% 12%;
+
+    --muted: 35 35% 92%;
+    --muted-foreground: 25 20% 40%;
+
+    --accent: 28 55% 88%;
+    --accent-foreground: 25 25% 12%;
+
+    --destructive: 0 84% 55%;
+    --destructive-foreground: 0 0% 98%;
+
+    --success: 145 55% 38%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 35 90% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 35 25% 85%;
+    --input: 35 25% 85%;
+    --ring: 18 80% 48%;
+
+    --chart-1: 18 80% 48%;
+    --chart-2: 145 55% 38%;
+    --chart-3: 35 90% 50%;
+    --chart-4: 300 40% 55%;
+    --chart-5: 10 70% 52%;
+  }
+
   .dark {
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
@@ -92,6 +176,24 @@ All colors MUST be HSL.
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+
+.theme-ocean {
+    --background: 205 45% 96%;
+    --foreground: 210 40% 12%;
+    --primary: 200 90% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 205 40% 90%;
+    /* ...override any variables you want */
+  }
+
+  .theme-sand {
+    --background: 35 60% 96%;
+    --foreground: 25 30% 12%;
+    --primary: 18 80% 45%;
+    --primary-foreground: 0 0% 100%;
+    /* ... */
+  }
+
 }
 
 @layer base {
@@ -103,3 +205,4 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+

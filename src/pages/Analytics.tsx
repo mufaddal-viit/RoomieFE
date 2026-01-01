@@ -254,9 +254,9 @@ const Analytics = () => {
             </PopoverContent>
           </Popover>
         </div>
-        <p className="text-xs text-muted-foreground">
+        {/* <p className="text-xs text-muted-foreground">
           Filtering overview, categories, and contributors by the selected month.
-        </p>
+        </p> */}
       </div>
 
       <Card>
