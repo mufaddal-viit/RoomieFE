@@ -32,7 +32,6 @@ const UserMenu = ({ userName, isManager = false }: UserMenuProps) => {
   const menuItems = userMenuConfig.filter(item => !item.requiresManager || isManager);
   const primaryItems = menuItems.filter(item => item.action !== 'logout');
   const logoutItem = menuItems.find(item => item.action === 'logout');
-
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const stored = window.localStorage.getItem(AVATAR_STORAGE_KEY);
@@ -52,6 +51,13 @@ const UserMenu = ({ userName, isManager = false }: UserMenuProps) => {
       window.localStorage.setItem(AVATAR_STORAGE_KEY, dataUrl);
     }
     setUploadOpen(false);
+  };
+
+  const handleRemovePhoto = () => {
+    setAvatarUrl(null);
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(AVATAR_STORAGE_KEY);
+    }
   };
 
   const handleItemClick = (item: UserMenuItem) => {
@@ -125,6 +131,7 @@ const UserMenu = ({ userName, isManager = false }: UserMenuProps) => {
         onOpenChange={setUploadOpen}
         initial={userName}
         onSave={handleSavePhoto}
+        onRemove={handleRemovePhoto}
       />
     </DropdownMenu>
   );

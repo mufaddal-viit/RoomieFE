@@ -47,7 +47,7 @@ const AddExpense = () => {
       {mode === 'room' ? (
         <RoomExpenseForm currentUserId={currentUser.id} roomId={roomId} roommates={roommates} />
       ) : (
-        <GroupExpenseForm />
+        <GroupExpenseForm roommates={roommates} />
       )}
     </Layout>
   );

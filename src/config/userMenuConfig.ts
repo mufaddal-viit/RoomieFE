@@ -8,7 +8,7 @@ export type UserMenuItem = {
 
 export const userMenuConfig: UserMenuItem[] = [
   {
-    label: 'Upload Photo',
+    label: 'Update Photo',
     action: 'upload-photo',
     icon: 'upload',
   },

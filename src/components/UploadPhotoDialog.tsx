@@ -9,9 +9,10 @@ type UploadPhotoDialogProps = {
   onOpenChange: (open: boolean) => void;
   initial?: string;
   onSave: (dataUrl: string) => void;
+  onRemove?: () => void;
 };
 
-const UploadPhotoDialog = ({ open, onOpenChange, initial = '?', onSave }: UploadPhotoDialogProps) => {
+const UploadPhotoDialog = ({ open, onOpenChange, initial = '?', onSave, onRemove }: UploadPhotoDialogProps) => {
   const [pendingPreview, setPendingPreview] = useState<string | null>(null);
   const showInitial = useMemo(() => initial?.[0]?.toUpperCase() ?? '?', [initial]);
 
@@ -34,6 +35,12 @@ const UploadPhotoDialog = ({ open, onOpenChange, initial = '?', onSave }: Upload
     onOpenChange(nextOpen);
   };
 
+  const handleRemove = () => {
+    setPendingPreview(null);
+    onRemove?.();
+    handleClose(false);
+  };
+
   const handleSave = () => {
     if (!pendingPreview) return;
     onSave(pendingPreview);
@@ -44,7 +51,7 @@ const UploadPhotoDialog = ({ open, onOpenChange, initial = '?', onSave }: Upload
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Upload Photo</DialogTitle>
+          <DialogTitle>Update Photo</DialogTitle>
           <DialogDescription>Choose a profile photo to use in your menu avatar.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -60,8 +67,8 @@ const UploadPhotoDialog = ({ open, onOpenChange, initial = '?', onSave }: Upload
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => handleClose(false)}>
-            Cancel
+          <Button variant="destructive" className="bg-red-700" onClick={handleRemove}>
+            Remove Photo
           </Button>
           <Button onClick={handleSave} disabled={!pendingPreview}>
             Save Photo
