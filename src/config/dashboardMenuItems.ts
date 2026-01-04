@@ -59,4 +59,10 @@ export const dashboardMenuItems: DashboardMenuItem[] = [
     icon: Wallet,
     variant: 'outline',
   },
+  {
+    label: 'Accounts',
+    path: '/accounts',
+    icon: User,
+    variant: 'outline',
+  },
 ];

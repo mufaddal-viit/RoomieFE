@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -25,6 +25,8 @@ interface SelectPillsProps {
   value?: string[];
   onValueChange?: (selectedValues: string[]) => void;
   placeholder?: string;
+  inputId?: string;
+  emptyStateText?: string;
 }
 
 export const SelectPills: React.FC<SelectPillsProps> = ({
@@ -33,52 +35,95 @@ export const SelectPills: React.FC<SelectPillsProps> = ({
   value,
   onValueChange,
   placeholder = "Type to search...",
+  inputId,
+  emptyStateText = "No matches found.",
 }) => {
   const [inputValue, setInputValue] = useState<string>("");
   const [selectedPills, setSelectedPills] = useState<string[]>(
-    value || defaultValue
+    value ?? defaultValue
   );
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const radioGroupRef = useRef<HTMLDivElement>(null);
+  const listboxRef = useRef<HTMLDivElement>(null);
+  const generatedId = useId();
+  const resolvedInputId = inputId ?? `pill-input-${generatedId}`;
+  const listboxId = `${resolvedInputId}-listbox`;
+  const focusInput = () => {
+    requestAnimationFrame(() => {
+      inputRef.current?.focus();
+    });
+  };
 
-  const filteredItems = data.filter(
-    (item) =>
-      item.name.toLowerCase().includes(inputValue.toLowerCase()) &&
-      !selectedPills.includes(item.name)
+  useEffect(() => {
+    if (Array.isArray(value)) {
+      setSelectedPills(value);
+    }
+  }, [value]);
+
+  useEffect(() => {
+    focusInput();
+  }, []);
+
+  const selectedValues = value ?? selectedPills;
+  const normalizedQuery = inputValue.trim().toLowerCase();
+  const availableItems = data.filter(
+    (item) => !selectedValues.includes(item.name)
   );
+
+  const filteredItems = availableItems.filter(
+    (item) =>
+      item.name.toLowerCase().includes(normalizedQuery)
+  );
+  const canOpen = availableItems.length > 0 || normalizedQuery.length > 0;
+
+  const focusOption = (index: number) => {
+    const optionNodes = listboxRef.current?.querySelectorAll<HTMLButtonElement>(
+      'button[data-option="true"]'
+    );
+    const option = optionNodes?.[index];
+    if (!option) {
+      return;
+    }
+    option.focus();
+    setHighlightedIndex(index);
+    option.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  };
+
+  const updateSelected = (nextSelected: string[]) => {
+    if (!value) {
+      setSelectedPills(nextSelected);
+    }
+    if (onValueChange) {
+      onValueChange(nextSelected);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
     setHighlightedIndex(-1);
 
-    // Only open the popover if we have matching items that aren't already selected
-    const hasUnselectedMatches = data.some(
-      (item) =>
-        item.name.toLowerCase().includes(newValue.toLowerCase()) &&
-        !(value || selectedPills).includes(item.name)
-    );
+    const nextQuery = newValue.trim().toLowerCase();
+    setIsOpen(availableItems.length > 0 || nextQuery.length > 0);
 
-    setIsOpen(hasUnselectedMatches);
-
-    requestAnimationFrame(() => {
-      inputRef.current?.focus();
-    });
+    focusInput();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
-        if (isOpen && filteredItems.length > 0) {
-          // Move focus to first radio button
-          const firstRadio = radioGroupRef.current?.querySelector(
-            'input[type="radio"]'
-          ) as HTMLElement;
-          firstRadio?.focus();
-          setHighlightedIndex(0);
+        if (filteredItems.length > 0) {
+          if (!isOpen) {
+            setIsOpen(true);
+            requestAnimationFrame(() => focusOption(0));
+            return;
+          }
+          focusOption(0);
         }
         break;
       case "Escape":
@@ -87,39 +132,21 @@ export const SelectPills: React.FC<SelectPillsProps> = ({
     }
   };
 
-  const handleRadioKeyDown = (
-    e: React.KeyboardEvent<HTMLDivElement>,
+  const handleOptionKeyDown = (
+    e: React.KeyboardEvent<HTMLButtonElement>,
     index: number
   ) => {
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
         if (index < filteredItems.length - 1) {
-          setHighlightedIndex(index + 1);
-          const nextItem = radioGroupRef.current?.querySelector(
-            `div:nth-child(${index + 2})`
-          ) as HTMLElement;
-          if (nextItem) {
-            nextItem.scrollIntoView({
-              behavior: "smooth",
-              block: "nearest",
-            });
-          }
+          focusOption(index + 1);
         }
         break;
       case "ArrowUp":
         e.preventDefault();
         if (index > 0) {
-          setHighlightedIndex(index - 1);
-          const prevItem = radioGroupRef.current?.querySelector(
-            `div:nth-child(${index})`
-          ) as HTMLElement;
-          if (prevItem) {
-            prevItem.scrollIntoView({
-              behavior: "smooth",
-              block: "nearest",
-            });
-          }
+          focusOption(index - 1);
         } else {
           inputRef.current?.focus();
           setHighlightedIndex(-1);
@@ -139,24 +166,20 @@ export const SelectPills: React.FC<SelectPillsProps> = ({
   };
 
   const handleItemSelect = (item: DataItem) => {
-    const newSelectedPills = [...selectedPills, item.name];
-    setSelectedPills(newSelectedPills);
+    const newSelectedPills = [...selectedValues, item.name];
+    updateSelected(newSelectedPills);
     setInputValue("");
     setIsOpen(false);
     setHighlightedIndex(-1);
-    if (onValueChange) {
-      onValueChange(newSelectedPills);
-    }
+    focusInput();
   };
 
   const handlePillRemove = (pillToRemove: string) => {
-    const newSelectedPills = selectedPills.filter(
+    const newSelectedPills = selectedValues.filter(
       (pill) => pill !== pillToRemove
     );
-    setSelectedPills(newSelectedPills);
-    if (onValueChange) {
-      onValueChange(newSelectedPills);
-    }
+    updateSelected(newSelectedPills);
+    focusInput();
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -164,44 +187,56 @@ export const SelectPills: React.FC<SelectPillsProps> = ({
     if (!open) {
       setIsOpen(false);
     }
-    requestAnimationFrame(() => {
-      inputRef.current?.focus();
-    });
   };
 
   return (
     <Popover open={isOpen} onOpenChange={handleOpenChange}>
-        <div className="flex flex-wrap gap-2 min-h-12 ">
-        {(value || selectedPills).map((pill) => (
+      <div
+        className="flex min-h-12 flex-wrap items-center gap-2 rounded-xl border border-muted/60 bg-muted/20 px-3 py-2 shadow-sm transition-colors focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/20"
+        onClick={focusInput}
+      >
+        {selectedValues.map((pill) => (
           <Badge
             key={pill}
-            variant="secondary"
-            className="gap-1 group"
+            variant="outline"
+            className="gap-1 rounded-full border-muted/60 bg-background/80 px-3 py-1 text-xs font-medium text-foreground shadow-sm"
           >
             {pill}
             <button
               type="button"
               onClick={() => handlePillRemove(pill)}
               aria-label={`Remove ${pill}`}
-              className="appearance-none text-muted-foreground group-hover:text-foreground transition-colors"
+              className="rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
             >
               <X size={12} />
             </button>
           </Badge>
-            ))}
-            <PopoverAnchor asChild>
-                <Input
-                    ref={inputRef}
-                    type="text"
-                    value={inputValue}
-                    onChange={handleInputChange}
-                    onKeyDown={handleKeyDown}
-                    placeholder={placeholder}
-                />
-            </PopoverAnchor>
-        </div>
+        ))}
+        <PopoverAnchor asChild>
+          <Input
+            ref={inputRef}
+            id={resolvedInputId}
+            type="text"
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            onFocus={() => {
+              if (canOpen) {
+                setIsOpen(true);
+              }
+            }}
+            placeholder={placeholder}
+            aria-controls={listboxId}
+            aria-expanded={isOpen}
+            aria-autocomplete="list"
+            className="h-8 min-w-[160px] flex-1 border-0 bg-transparent px-1 py-0 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
+        </PopoverAnchor>
+      </div>
 
       <PopoverContent
+        align="start"
+        className="w-[min(360px,calc(100vw-2rem))] p-2"
         onFocusOutside={(e) => {
           // Prevent closing if focus is in the input
           if (e.target === inputRef.current) {
@@ -216,37 +251,37 @@ export const SelectPills: React.FC<SelectPillsProps> = ({
         }}
       >
         <div
-          ref={radioGroupRef}
-          role="radiogroup"
+          ref={listboxRef}
+          id={listboxId}
+          role="listbox"
           aria-label="Pill options"
-          onKeyDown={(e) => handleRadioKeyDown(e, highlightedIndex)}
-          className="max-h-[200px] overflow-y-auto"
+          className="max-h-56 overflow-y-auto p-1"
         >
-          {filteredItems.map((item, index) => (
-            <div
-              key={item.id || item.value || item.name}
-              className={cn(
-                "relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent/70 focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0",
-                highlightedIndex === index && "bg-accent"
-              )}
-            >
-              <input
-                type="radio"
-                id={`pill-${item.name}`}
-                name="pill-selection"
-                value={item.name}
-                className="sr-only"
-                checked={highlightedIndex === index}
-                onChange={() => handleItemSelect(item)}
-              />
-              <label
-                htmlFor={`pill-${item.name}`}
-                className="flex items-center w-full cursor-pointer"
-              >
-                {item.name}
-              </label>
+          {filteredItems.length === 0 ? (
+            <div className="px-3 py-6 text-center text-xs text-muted-foreground">
+              {emptyStateText}
             </div>
-          ))}
+          ) : (
+            filteredItems.map((item, index) => (
+              <button
+                key={item.id || item.value || item.name}
+                type="button"
+                data-option="true"
+                role="option"
+                aria-selected={highlightedIndex === index}
+                onClick={() => handleItemSelect(item)}
+                onMouseEnter={() => setHighlightedIndex(index)}
+                onFocus={() => setHighlightedIndex(index)}
+                onKeyDown={(e) => handleOptionKeyDown(e, index)}
+                className={cn(
+                  "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-accent/60 focus-visible:bg-accent/60 focus-visible:outline-none",
+                  highlightedIndex === index && "bg-accent/70"
+                )}
+              >
+                <span className="truncate">{item.name}</span>
+              </button>
+            ))
+          )}
         </div>
       </PopoverContent>
     </Popover>

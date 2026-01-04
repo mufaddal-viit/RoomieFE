@@ -15,6 +15,7 @@ import AddMember from "./pages/AddMember";
 import Todos from "./pages/Todo";
 import Expenses from "./pages/Expenses";
 import Savings from "./pages/Savings";
+import Accounts from "./pages/Accounts";
 import NotFound from "./pages/NotFound";
 import { SessionProvider } from "./contexts/SessionContext";
 
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/personal" element={<Personal />} />
             <Route path="/namaz" element={<Namaz />} />
             <Route path="/savings" element={<Savings />} />
+            <Route path="/accounts" element={<Accounts />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

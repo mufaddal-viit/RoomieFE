@@ -6,6 +6,8 @@ export interface Roommate {
   isManager: boolean;
   roomId: string;
   room?: Room;
+  createdAt?: Date
+  updatedAt?: Date
 }
 
 export interface Expense {
