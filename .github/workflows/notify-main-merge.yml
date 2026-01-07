@@ -1,0 +1,29 @@
+name: Notify on main push
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram message
+        run: |
+          TEXT="New commit pushed to main in $GITHUB_REPOSITORY
+
+Author: $GITHUB_ACTOR
+Commit: $GITHUB_SHA
+Message: $(git log -1 --pretty=%B)
+Link: https://github.com/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}"
+          
+          curl -s -X POST \
+            "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
+            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d parse_mode="Markdown" \
+            --data-urlencode text="$TEXT"
+      - name: Checkout (for git log)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
