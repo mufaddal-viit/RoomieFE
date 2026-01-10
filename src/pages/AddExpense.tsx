@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import Layout from '@/components/Layout';
 import { useSession } from '@/contexts/SessionContext';
 import RoomExpenseForm from '@/components/add-expense/RoomExpenseForm';
-import GroupExpenseForm from '@/components/add-expense/GroupExpenseForm';
+import GroupExpenseComingSoon from '@/components/add-expense/GroupExpenseComingSoon';
 
 const AddExpense = () => {
   const navigate = useNavigate();
@@ -47,7 +47,7 @@ const AddExpense = () => {
       {mode === 'room' ? (
         <RoomExpenseForm currentUserId={currentUser.id} roomId={roomId} roommates={roommates} />
       ) : (
-        <GroupExpenseForm roommates={roommates} />
+        <GroupExpenseComingSoon onSwitchToRoom={() => setMode('room')} />
       )}
     </Layout>
   );

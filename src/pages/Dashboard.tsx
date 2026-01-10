@@ -10,6 +10,7 @@ import { useSession } from '@/contexts/SessionContext';
 import Analytics from './Analytics';
 import { dashboardStats } from '@/config/dashboardStats';
 import { dashboardMenuItems } from '@/config/dashboardMenuItems';
+import DashboardSkeleton from '@/components/DashboardSkeleton';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (sessionLoading) return;
     if (!currentUser || !roomId) {
+      setLoadingExpenses(false);
       navigate('/');
       return;
     }
@@ -40,6 +42,22 @@ const Dashboard = () => {
     loadExpenses();
   }, [sessionLoading, currentUser, roomId, navigate]);
 
+  const isLoading = sessionLoading || loadingExpenses;
+
+  if (isLoading) {
+    return (
+      <Layout
+        title="Expense Tracker"
+        subtitle="Loading dashboard..."
+        isManager={false}
+        userName={currentUser?.name}
+        contentClassName="space-y-6"
+      >
+        <DashboardSkeleton />
+      </Layout>
+    );
+  }
+
   const approvedExpenses = expenses.filter(e => e.status === 'approved');
   const totalExpense = approvedExpenses.reduce((sum, e) => sum + e.amount, 0);
   const perPersonShare = roommates.length > 0 ? totalExpense / roommates.length : 0;
@@ -55,7 +73,7 @@ const Dashboard = () => {
     isManager: !!currentUser?.isManager,
   };
 
-  if (!currentUser || sessionLoading || loadingExpenses) return null;
+  if (!currentUser) return null;
 
   return (
     <Layout
