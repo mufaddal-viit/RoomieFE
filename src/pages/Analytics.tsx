@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { useSession } from '@/contexts/SessionContext';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
+import { analyticsOverviewCards } from '@/config/analyticsOverviewCards';
 
 const formatMoney = (value: number) => {
   const sign = value < 0 ? '-' : '';
@@ -27,6 +28,18 @@ const parseExpenseDate = (value: string) => {
 const getMonthKey = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
 const sumExpenses = (items: Expense[]) => items.reduce((sum, exp) => sum + exp.amount, 0);
+
+const formatOverviewValue = (format: string, value: number | undefined) => {
+  if (typeof value !== 'number' || Number.isNaN(value)) return 'N/A';
+  switch (format) {
+    case 'money':
+      return formatMoney(value);
+    case 'percent':
+      return `${value.toFixed(1)}%`;
+    default:
+      return `${value}`;
+  }
+};
 
 
 
@@ -141,14 +154,6 @@ const Analytics = () => {
   const monthPerPersonShare = roommates.length > 0 ? monthTotalExpense / roommates.length : 0;
 
   const monthApprovedAmounts = monthApprovedExpenses.map(expense => expense.amount).sort((a, b) => a - b);
-  const monthMedianExpense =
-    monthApprovedAmounts.length === 0
-      ? 0
-      : monthApprovedAmounts.length % 2 === 1
-        ? monthApprovedAmounts[(monthApprovedAmounts.length - 1) / 2]
-        : (monthApprovedAmounts[monthApprovedAmounts.length / 2 - 1] +
-            monthApprovedAmounts[monthApprovedAmounts.length / 2]) /
-          2;
 
   const now = new Date();
   const last7Start = new Date(now);
@@ -232,6 +237,15 @@ const Analytics = () => {
       ? [...categoryShareBase, { category: 'Other', amount: otherCategoriesTotal }]
       : categoryShareBase;
 
+  const overviewValues: Record<string, number> = {
+    monthTotalExpense,
+    monthAvgExpense,
+    // monthMedianExpense,
+    monthPerPersonShare,
+    monthApprovedCount: monthApprovedExpenses.length,
+    approvalRate,
+  };
+
   if (!currentUser || loading || loadingExpenses) return null;
 
   return (
@@ -264,30 +278,14 @@ const Analytics = () => {
           <CardTitle>Overview</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-          <div>
-            <p className="text-sm text-muted-foreground">Total Approved</p>
-            <p className="text-2xl font-bold">{formatMoney(monthTotalExpense)}</p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Average Expense</p>
-            <p className="text-2xl font-bold">{formatMoney(monthAvgExpense)}</p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Median Expense</p>
-            <p className="text-2xl font-bold">{formatMoney(monthMedianExpense)}</p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Per Person Share</p>
-            <p className="text-2xl font-bold">{formatMoney(monthPerPersonShare)}</p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Approved Count</p>
-            <p className="text-2xl font-bold">{monthApprovedExpenses.length}</p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Approval Rate</p>
-            <p className="text-2xl font-bold">{approvalRate.toFixed(1)}%</p>
-          </div>
+          {analyticsOverviewCards.map((card) => (
+            <div key={card.id}>
+              <p className="text-sm text-muted-foreground">{card.label}</p>
+              <p className="text-2xl font-bold">
+                {formatOverviewValue(card.format, overviewValues[card.valueKey])}
+              </p>
+            </div>
+          ))}
         </CardContent>
       </Card>
 

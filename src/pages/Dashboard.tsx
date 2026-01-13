@@ -88,7 +88,7 @@ const Dashboard = () => {
       userName={currentUser.name}
       contentClassName="space-y-6"
     >
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {dashboardStats.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -101,7 +101,7 @@ const Dashboard = () => {
             />
           );
         })}
-      </div>
+      </div> */}
 
       <div className="flex flex-wrap gap-3">
         {dashboardMenuItems
