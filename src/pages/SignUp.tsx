@@ -84,7 +84,7 @@ const SignUp = () => {
         targetRoomId = room.id;
       }
 
-      const roommate = await storage.createRoommate({
+      await storage.createRoommate({
         name: name.trim(),
         email: email.trim(),
         password,
@@ -92,8 +92,10 @@ const SignUp = () => {
         isManager: managerAvailable ? isManager : false,
       });
 
-      storage.setCurrentUser(roommate.id);
-      storage.setCurrentRoom(targetRoomId);
+      const user = await storage.authenticate(email.trim(), password);
+      const resolvedRoomId = user.roomId || targetRoomId;
+      storage.setCurrentUser(user.id);
+      storage.setCurrentRoom(resolvedRoomId);
       toast.success('Account created');
       navigate('/dashboard');
     } catch (error) {

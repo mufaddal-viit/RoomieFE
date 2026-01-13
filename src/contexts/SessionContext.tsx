@@ -23,6 +23,7 @@ const SessionProvider = ({ children }: { children: ReactNode }) => {
   const clearSession = useCallback(() => {
     storage.clearCurrentUser();
     storage.clearCurrentRoom();
+    storage.clearAuthToken();
     setCurrentUser(null);
     setRoommates([]);
     setRoomId(null);
