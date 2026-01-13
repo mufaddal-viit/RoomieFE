@@ -10,10 +10,8 @@ import { toast } from 'sonner';
 
 const AddMember = () => {
   const navigate = useNavigate();
-  const [name, setName] = useState('');
+  const [roommateId, setRoommateId] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isManager, setIsManager] = useState(false);
   const roomId = storage.getCurrentRoom();
 
   const handleSubmit = async (e: FormEvent) => {
@@ -23,13 +21,17 @@ const AddMember = () => {
       return;
     }
 
+    const trimmedEmail = email.trim();
+    const trimmedRoommateId = roommateId.trim();
+    if (!trimmedEmail && !trimmedRoommateId) {
+      toast.error('Provide an email or roommate ID');
+      return;
+    }
+
     try {
-      await storage.createRoommate({
-        name: name.trim(),
-        email: email.trim(),
-        password,
-        roomId,
-        isManager,
+      await storage.addMember({
+        email: trimmedEmail || undefined,
+        roommateId: trimmedRoommateId || undefined,
       });
       toast.success('Member added');
       navigate('/dashboard');
@@ -48,16 +50,6 @@ const AddMember = () => {
         <CardContent>
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
-              <Label htmlFor="name">Full name</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="Taylor Smith"
-                required
-              />
-            </div>
-            <div>
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
@@ -65,29 +57,16 @@ const AddMember = () => {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="taylor@example.com"
-                required
               />
             </div>
             <div>
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="roommateId">Roommate ID</Label>
               <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="********"
-                required
+                id="roommateId"
+                value={roommateId}
+                onChange={e => setRoommateId(e.target.value)}
+                placeholder="Optional if email is provided"
               />
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                id="isManager"
-                type="checkbox"
-                checked={isManager}
-                onChange={e => setIsManager(e.target.checked)}
-                className="h-4 w-4"
-              />
-              <Label htmlFor="isManager">Set as manager</Label>
             </div>
             <div className="flex gap-3 pt-2">
               <Button type="submit" className="flex-1">

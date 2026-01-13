@@ -125,15 +125,15 @@ const RoomExpenseForm = ({ currentUserId, roomId, roommates }: RoomExpenseFormPr
             );
           })}
 
-          <div className="flex gap-3 pt-4">
-            <Button type="submit" className="flex-1">
+          <div className="flex flex-col gap-3 pt-4 sm:flex-row">
+            <Button type="submit" className="w-full sm:flex-1">
               Add Expense
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={() => navigate('/dashboard')}
-              className="flex-1"
+              className="w-full sm:flex-1"
             >
               Cancel
             </Button>

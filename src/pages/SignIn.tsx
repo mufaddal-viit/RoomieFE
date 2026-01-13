@@ -74,7 +74,7 @@ const SignIn = () => {
             <ShieldCheck className="h-4 w-4" />
             Roomie Bill Buddy
           </div>
-          <h1 className="text-3xl font-bold text-foreground">Sign in</h1>
+          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Sign in</h1>
           <p className="text-sm text-muted-foreground">Shared expenses, simplified.</p>
         </div>
 
@@ -96,6 +96,7 @@ const SignIn = () => {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="you@example.com"
+                  className="h-11"
                   required
                 />
               </div>
@@ -107,10 +108,11 @@ const SignIn = () => {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="********"
+                  className="h-11"
                   required
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full h-11" disabled={loading}>
                 {loading ? 'Signing in...' : 'Sign in'}
               </Button>
             </form>

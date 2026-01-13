@@ -144,18 +144,38 @@ export const storage = {
     name: string;
     email: string;
     password: string;
-    roomId: string;
+    roomId?: string;
     isManager?: boolean;
   }): Promise<Roommate> => {
-    return request<Roommate>('/roommates', {
+    const payload = {
+      name: params.name.trim(),
+      email: normalizeEmail(params.email),
+      password: params.password,
+      ...(params.roomId ? { roomId: params.roomId.trim() } : {}),
+    };
+    return request<Roommate>('/roommates/register', {
       method: 'POST',
-      body: JSON.stringify({
-        ...params,
-        email: normalizeEmail(params.email),
-      }),
+      body: JSON.stringify(payload),
     });
   },
 
+  addMember: async (params: { roommateId?: string; email?: string }): Promise<Roommate> => {
+    const payload: { roommateId?: string; email?: string } = {};
+    if (params.roommateId?.trim()) {
+      payload.roommateId = params.roommateId.trim();
+    }
+    if (params.email?.trim()) {
+      payload.email = normalizeEmail(params.email);
+    }
+    if (!payload.roommateId && !payload.email) {
+      throw new Error('roommateId or email is required');
+    }
+
+    return request<Roommate>('/roommates/add-member', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
   authenticate: async (email: string, password: string): Promise<Roommate> => {
     const auth = await request<{ token?: string; user: Roommate }>('/login', {
       method: 'POST',

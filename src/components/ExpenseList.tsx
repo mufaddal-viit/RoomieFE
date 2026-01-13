@@ -18,11 +18,11 @@ const ExpenseList = ({ expenses }: ExpenseListProps) => {
   return (
     <Card>
       <CardHeader>
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle>Recent Expenses</CardTitle>
           <Button
             variant='ghost'
-            className="text-sm font-medium text-primary hover:underline"
+            className="self-start text-sm font-medium text-primary hover:underline sm:self-auto"
             onClick={() => navigate('/expenses')}
           >
             View All
@@ -39,10 +39,10 @@ const ExpenseList = ({ expenses }: ExpenseListProps) => {
             sortedExpenses.map((expense) => (
               <div
                 key={expense.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                className="flex flex-col gap-3 p-4 border rounded-lg hover:bg-accent/50 transition-colors sm:flex-row sm:items-center sm:justify-between"
               >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
                     <h4 className="font-medium">{expense.description}</h4>
                     <Badge variant="secondary" className="text-xs">
                       {expense.category}
@@ -68,7 +68,7 @@ const ExpenseList = ({ expenses }: ExpenseListProps) => {
                     {new Date(expense.date).toLocaleDateString()}
                   </p>
                 </div>
-                <div className="text-right">
+                <div className="text-left sm:text-right">
                   <p className="text-lg font-bold">${expense.amount.toFixed(2)}</p>
                 </div>
               </div>

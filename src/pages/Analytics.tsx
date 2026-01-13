@@ -251,13 +251,13 @@ const Analytics = () => {
   return (
     <div className="space-y-6 lg:space-y-8">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
+        <div className="space-y-1 w-full sm:w-auto">
           <p className="text-sm font-medium">Month</p>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className={cn('h-9 w-[220px] justify-start text-left font-normal')}
+                className={cn('h-10 w-full justify-start text-left font-normal sm:w-[220px]')}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {selectedMonth.toLocaleString('en-US', { month: 'short', year: 'numeric' })}
@@ -438,7 +438,7 @@ const Analytics = () => {
             <CardTitle>Highlights</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
               <span className="text-sm text-muted-foreground">Largest Expense</span>
               <span className="text-right font-medium">
                 {largestExpense
@@ -446,23 +446,23 @@ const Analytics = () => {
                   : 'N/A'}
               </span>
             </div>
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
               <span className="text-sm text-muted-foreground">Top Category</span>
               <span className="text-right font-medium">
                 {topCategory ? `${topCategory.category} (${formatMoney(topCategory.amount)})` : 'N/A'}
               </span>
             </div>
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
               <span className="text-sm text-muted-foreground">Most Frequent Category</span>
               <span className="text-right font-medium">{mostFrequentCategory || 'N/A'}</span>
             </div>
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
               <span className="text-sm text-muted-foreground">Top Contributor</span>
               <span className="text-right font-medium">
                 {topContributor ? `${topContributor.name} (${formatMoney(topContributor.amount)})` : 'N/A'}
               </span>
             </div>
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
               <span className="text-sm text-muted-foreground">Latest Approved</span>
               <span className="text-right font-medium">
                 {latestApprovedExpense
@@ -479,19 +479,19 @@ const Analytics = () => {
           <CardTitle>Status Breakdown</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex justify-between">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-sm text-muted-foreground">Approved</span>
             <span className="font-medium">
               {approvedExpenses.length} | {formatMoney(totalExpense)}
             </span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-sm text-muted-foreground">Pending</span>
             <span className="font-medium">
               {pendingExpenses.length} | {formatMoney(pendingTotal)}
             </span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-sm text-muted-foreground">Rejected</span>
             <span className="font-medium">
               {rejectedExpenses.length} | {formatMoney(rejectedTotal)}

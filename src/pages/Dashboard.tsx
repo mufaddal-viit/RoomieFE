@@ -103,7 +103,7 @@ const Dashboard = () => {
         })}
       </div> */}
 
-      <div className="flex flex-wrap gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:flex xl:flex-wrap">
         {dashboardMenuItems
           .filter(item => !item.requiresManager || menuInput.isManager)
           .map((item) => {
@@ -114,6 +114,7 @@ const Dashboard = () => {
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 variant={item.variant ?? 'outline'}
+                className="w-full justify-start sm:justify-center xl:w-auto"
               >
                 {Icon && <Icon className="h-4 w-4 mr-2" />}
                 {label}

@@ -27,11 +27,12 @@ const AddExpense = () => {
       isManager={!!currentUser.isManager}
       contentClassName="max-w-2xl space-y-6"
     >
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <Button
           type="button"
           variant={mode === 'room' ? 'default' : 'outline'}
           onClick={() => setMode('room')}
+          className="w-full"
         >
           Room Expense
         </Button>
@@ -39,6 +40,7 @@ const AddExpense = () => {
           type="button"
           variant={mode === 'group' ? 'default' : 'outline'}
           onClick={() => setMode('group')}
+          className="w-full"
         >
           Group Expense
         </Button>
