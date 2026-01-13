@@ -1,13 +1,11 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserPlus, Shield, Crown } from 'lucide-react';
+import { UserPlus, Shield } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { storage } from '@/lib/storage';
-import { Roommate } from '@/lib/types';
 import { toast } from 'sonner';
 
 const SignUp = () => {
@@ -16,9 +14,6 @@ const SignUp = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [roommates, setRoommates] = useState<Roommate[]>([]);
-  const [isManager, setIsManager] = useState(true);
-  const [roomName, setRoomName] = useState('My Room');
   const [roomIdToJoin, setRoomIdToJoin] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -28,34 +23,7 @@ const SignUp = () => {
       navigate('/dashboard');
       return;
     }
-    const loadRoom = async () => {
-      const currentRoom = storage.getCurrentRoom();
-      if (!currentRoom) return;
-      try {
-        const existingRoommates = await storage.getRoommates(currentRoom);
-        setRoommates(existingRoommates);
-        setIsManager(!existingRoommates.some(r => r.isManager));
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    loadRoom();
   }, [navigate]);
-
-  const joiningExisting = roomIdToJoin.trim().length > 0;
-
-  const managerAvailable = useMemo(
-    () => !roommates.some(r => r.isManager),
-    [roommates]
-  );
-
-  useEffect(() => {
-    if (joiningExisting) {
-      setIsManager(false);
-    } else {
-      setIsManager(true);
-    }
-  }, [joiningExisting]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -77,25 +45,22 @@ const SignUp = () => {
 
     try {
       setLoading(true);
-      let targetRoomId = roomIdToJoin.trim();
-
-      if (!targetRoomId) {
-        const room = await storage.createRoom(roomName || 'Household');
-        targetRoomId = room.id;
-      }
+      const targetRoomId = roomIdToJoin.trim();
 
       await storage.createRoommate({
         name: name.trim(),
         email: email.trim(),
         password,
-        roomId: targetRoomId,
-        isManager: managerAvailable ? isManager : false,
+        ...(targetRoomId ? { roomId: targetRoomId } : {}),
       });
 
       const user = await storage.authenticate(email.trim(), password);
-      const resolvedRoomId = user.roomId || targetRoomId;
       storage.setCurrentUser(user.id);
-      storage.setCurrentRoom(resolvedRoomId);
+      if (user.roomId) {
+        storage.setCurrentRoom(user.roomId);
+      } else if (targetRoomId) {
+        storage.setCurrentRoom(targetRoomId);
+      }
       toast.success('Account created');
       navigate('/dashboard');
     } catch (error) {
@@ -115,17 +80,11 @@ const SignUp = () => {
             New to Roomie Bill Buddy
           </div>
           <h1 className="text-4xl font-bold text-foreground leading-tight">
-            Create an account for your household
+            Create your account
           </h1>
           <p className="text-muted-foreground text-lg">
-            Start tracking expenses together. The first account can claim manager permissions for approvals.
+            Get started with Roomie Bill Buddy. If you have a room ID, you can join it now.
           </p>
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <Crown className="h-4 w-4 text-amber-500" />
-            {managerAvailable
-              ? 'No manager assigned yet — claim the role during sign-up.'
-              : 'A manager already exists. Additional roommates will have standard access.'}
-          </div>
         </div>
 
         <Card>
@@ -160,22 +119,12 @@ const SignUp = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="roomName">Room name (new room)</Label>
-                <Input
-                  id="roomName"
-                  value={roomName}
-                  onChange={e => setRoomName(e.target.value)}
-                  placeholder="Downtown Apartment"
-                  disabled={joiningExisting}
-                />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="roomIdToJoin">Join existing room (ID)</Label>
                 <Input
                   id="roomIdToJoin"
                   value={roomIdToJoin}
                   onChange={e => setRoomIdToJoin(e.target.value)}
-                  placeholder="Paste a room ID to join instead of creating one"
+                  placeholder="Paste a room ID to join a room"
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -202,23 +151,6 @@ const SignUp = () => {
                   />
                 </div>
               </div>
-
-              {managerAvailable && !joiningExisting && (
-                <div className="flex items-center justify-between rounded-lg border p-3">
-                  <div className="space-y-1">
-                    <p className="font-medium text-foreground">Set as manager</p>
-                    <p className="text-sm text-muted-foreground">
-                      Managers approve expenses and handle pending requests.
-                    </p>
-                  </div>
-                  <Switch
-                    checked={isManager}
-                    onCheckedChange={setIsManager}
-                    aria-label="Toggle manager role"
-                  />
-                </div>
-              )}
-
               <Button type="submit" className="w-full">
                 Create account
               </Button>
