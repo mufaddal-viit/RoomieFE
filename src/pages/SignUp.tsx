@@ -101,7 +101,7 @@ const SignUp = () => {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-50 via-background to-teal-50">
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-50 via-background to-teal-50 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-700">
       <span
         aria-hidden
         className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-sky-300/25 blur-3xl"
@@ -110,7 +110,7 @@ const SignUp = () => {
         aria-hidden
         className="pointer-events-none absolute bottom-0 right-0 h-96 w-96 translate-x-1/3 rounded-full bg-teal-300/25 blur-3xl"
       />
-      <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-5xl flex-col justify-center px-4 py-12">
+      <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-5xl flex-col justify-center px-4 py-12 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-6 motion-safe:duration-700">
         <section className="grid grid-cols-1 items-center gap-8 lg:grid-cols-[1.05fr,1fr]">
           <section className="space-y-4">
             <span className="inline-flex items-center gap-2 rounded-full bg-sky-500/10 px-3 py-1 text-sm font-medium text-sky-700">

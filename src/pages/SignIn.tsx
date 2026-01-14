@@ -76,7 +76,7 @@ const SignIn = () => {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-50 via-background to-teal-50">
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-50 via-background to-teal-50 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-700">
       <span
         aria-hidden
         className="pointer-events-none absolute -left-20 -top-16 h-72 w-72 rounded-full bg-sky-300/30 blur-3xl"
@@ -85,7 +85,7 @@ const SignIn = () => {
         aria-hidden
         className="pointer-events-none absolute bottom-0 right-0 h-80 w-80 translate-x-1/3 rounded-full bg-teal-300/25 blur-3xl"
       />
-      <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-lg flex-col justify-center gap-6 px-4 py-10">
+      <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-lg flex-col justify-center gap-6 px-4 py-10 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-6 motion-safe:duration-700">
         <Card className="relative overflow-hidden border border-white/40 bg-background/80 shadow-[0_25px_60px_-35px_rgba(14,116,144,0.45)] backdrop-blur-xl">
           <ShineBorder shineColor={['#A07CFE', '#FE8FB5', '#FFBE7B']} borderWidth={3} duration={20} />
           <span
