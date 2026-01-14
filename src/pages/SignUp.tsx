@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type KeyboardEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus, Shield } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { storage } from '@/lib/storage';
 import { toast } from 'sonner';
+import { ShineBorder } from '@/components/ui/shine-border';
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -24,13 +25,11 @@ const SignUp = () => {
     const currentUser = storage.getCurrentUser();
     if (currentUser) {
       navigate('/dashboard');
-      return;
     }
   }, [navigate]);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-
+  const handleSubmit = async () => {
+    if (loading) return;
     if (!name.trim() || !email.trim() || !password || !confirmPassword) {
       toast.error('Please fill in all fields');
       return;
@@ -95,79 +94,126 @@ const SignUp = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-background">
-      <div className="max-w-4xl mx-auto px-4 py-12 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-        <div className="space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-            <Shield className="h-4 w-4" />
-            New to Roomie Bill Buddy
-          </div>
-          <h1 className="text-4xl font-bold text-foreground leading-tight">
-            Create your account
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Get started with Roomie Bill Buddy. You can join or create a room when you sign up.
-          </p>
-        </div>
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== 'Enter' || loading) return;
+    event.preventDefault();
+    void handleSubmit();
+  };
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5 text-primary" />
-              <CardTitle>Sign up</CardTitle>
-            </div>
-            <CardDescription>Set up your profile to join the expense tracker.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full name</Label>
+  return (
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-50 via-background to-teal-50">
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-sky-300/25 blur-3xl"
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute bottom-0 right-0 h-96 w-96 translate-x-1/3 rounded-full bg-teal-300/25 blur-3xl"
+      />
+      <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-5xl flex-col justify-center px-4 py-12">
+        <section className="grid grid-cols-1 items-center gap-8 lg:grid-cols-[1.05fr,1fr]">
+          <section className="space-y-4">
+            <span className="inline-flex items-center gap-2 rounded-full bg-sky-500/10 px-3 py-1 text-sm font-medium text-sky-700">
+              <Shield className="h-4 w-4" />
+              New to Roomie Bill Buddy
+            </span>
+            <h1 className="text-4xl font-semibold leading-tight text-slate-900 sm:text-5xl">
+              Start your calmest roommate budget yet.
+            </h1>
+            <p className="text-lg text-slate-600">
+              Create an account, then decide whether to join an existing room or start a new
+              one.
+            </p>
+          </section>
+
+          <Card className="relative overflow-hidden border border-white/40 bg-background/80 shadow-[0_25px_60px_-35px_rgba(14,116,144,0.45)] backdrop-blur-xl">
+            <ShineBorder shineColor={['#A07CFE', '#FE8FB5', '#FFBE7B']} borderWidth={3} />
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-gradient-to-br from-sky-500/10 via-transparent to-teal-400/10"
+            />
+            <CardHeader className="relative z-10 space-y-3 text-center">
+              <span className="inline-flex items-center justify-center gap-2 rounded-full bg-sky-500/10 px-3 py-2 text-sm font-medium text-sky-700">
+                <UserPlus className="h-4 w-4" />
+                Sign up
+              </span>
+              <CardTitle className="font-serif text-2xl tracking-tight text-slate-900 sm:text-3xl">
+                Create your account
+              </CardTitle>
+              <CardDescription className="text-slate-600">
+                Set up your profile to join the expense tracker.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="relative z-10 space-y-4">
+              <section className="space-y-2">
+                <Label htmlFor="name" className="text-slate-700">
+                  Full name
+                </Label>
                 <Input
                   id="name"
                   value={name}
                   onChange={e => setName(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  autoComplete="name"
                   placeholder="Alex Johnson"
+                  className="h-11 border-white/50 bg-white/70 text-slate-900 placeholder:text-slate-400"
                   required
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+              </section>
+              <section className="space-y-2">
+                <Label htmlFor="email" className="text-slate-700">
+                  Email
+                </Label>
                 <Input
                   id="email"
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  autoComplete="email"
+                  autoCapitalize="none"
                   placeholder="you@example.com"
+                  className="h-11 border-white/50 bg-white/70 text-slate-900 placeholder:text-slate-400"
                   required
                 />
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+              </section>
+
+              <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <section className="space-y-2">
+                  <Label htmlFor="password" className="text-slate-700">
+                    Password
+                  </Label>
                   <Input
                     id="password"
                     type="password"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    placeholder="••••••••"
+                    onKeyDown={handleKeyDown}
+                    autoComplete="new-password"
+                    placeholder="********"
+                    className="h-11 border-white/50 bg-white/70 text-slate-900 placeholder:text-slate-400"
                     required
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm password</Label>
+                </section>
+                <section className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-slate-700">
+                    Confirm password
+                  </Label>
                   <Input
                     id="confirmPassword"
                     type="password"
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••"
+                    onKeyDown={handleKeyDown}
+                    autoComplete="new-password"
+                    placeholder="********"
+                    className="h-11 border-white/50 bg-white/70 text-slate-900 placeholder:text-slate-400"
                     required
                   />
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
+                </section>
+              </section>
+
+              <section className="flex items-center space-x-2">
                 <Checkbox
                   id="roomOptions"
                   checked={showRoomOptions}
@@ -182,10 +228,12 @@ const SignUp = () => {
                     }
                   }}
                 />
-                <Label htmlFor="roomOptions">I want to join or create a room now</Label>
-              </div>
+                <Label htmlFor="roomOptions" className="text-slate-700">
+                  I want to join or create a room now
+                </Label>
+              </section>
 
-              <div
+              <section
                 id="room-options-panel"
                 className={`overflow-hidden motion-safe:transition-[max-height,opacity,transform] motion-safe:duration-300 motion-safe:ease-out motion-reduce:transition-none motion-reduce:translate-y-0 ${
                   showRoomOptions
@@ -194,47 +242,60 @@ const SignUp = () => {
                 }`}
                 aria-hidden={!showRoomOptions}
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-lg border border-border/60 bg-muted/30 p-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="roomIdToJoin">Join existing room (ID)</Label>
+                <section className="grid grid-cols-1 gap-4 rounded-lg border border-sky-100/70 bg-sky-50/50 p-4 md:grid-cols-2">
+                  <section className="space-y-2">
+                    <Label htmlFor="roomIdToJoin" className="text-slate-700">
+                      Join existing room (ID)
+                    </Label>
                     <Input
                       id="roomIdToJoin"
                       value={roomIdToJoin}
                       onChange={e => setRoomIdToJoin(e.target.value)}
+                      onKeyDown={handleKeyDown}
                       placeholder="Enter Room ID"
+                      className="h-11 border-white/50 bg-white/70 text-slate-900 placeholder:text-slate-400"
                       disabled={!showRoomOptions}
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="newRoomName">Create a new room</Label>
+                  </section>
+                  <section className="space-y-2">
+                    <Label htmlFor="newRoomName" className="text-slate-700">
+                      Create a new room
+                    </Label>
                     <Input
                       id="newRoomName"
                       value={newRoomName}
                       onChange={e => setNewRoomName(e.target.value)}
-                      placeholder="Room Name"
+                      onKeyDown={handleKeyDown}
+                      placeholder="Room name"
+                      className="h-11 border-white/50 bg-white/70 text-slate-900 placeholder:text-slate-400"
                       disabled={!showRoomOptions}
                     />
-                  </div>
-                  <p className="text-xs text-muted-foreground md:col-span-2">
+                  </section>
+                  <p className="text-xs text-slate-500 md:col-span-2">
                     Choose one option to continue.
                   </p>
-                </div>
-              </div>
-              <Button type="submit" className="w-full">
-                Create account
+                </section>
+              </section>
+              <Button
+                type="button"
+                className="h-11 w-full bg-sky-600 text-white shadow-[0_14px_30px_-16px_rgba(2,132,199,0.7)] hover:bg-sky-500"
+                disabled={loading}
+                onClick={handleSubmit}
+              >
+                {loading ? 'Creating account...' : 'Create account'}
               </Button>
-            </form>
 
-            <p className="text-sm text-muted-foreground mt-4 text-center">
-              Already registered?{' '}
-              <Link to="/" className="text-primary hover:underline">
-                Sign in instead
-              </Link>
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+              <p className="text-center text-sm text-slate-600">
+                Already registered?{' '}
+                <Link to="/" className="font-medium text-sky-700 hover:text-sky-900">
+                  Sign in instead
+                </Link>
+              </p>
+            </CardContent>
+          </Card>
+        </section>
+      </section>
+    </main>
   );
 };
 

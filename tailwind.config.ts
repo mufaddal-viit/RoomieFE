@@ -64,6 +64,14 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
+        shine: {
+          "0%, 100%": {
+            backgroundPosition: "0% 0%",
+          },
+          "50%": {
+            backgroundPosition: "100% 100%",
+          },
+        },
         "accordion-down": {
           from: {
             height: "0",
@@ -82,6 +90,7 @@ export default {
         },
       },
       animation: {
+        shine: "shine var(--duration, 14s) linear infinite",
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },

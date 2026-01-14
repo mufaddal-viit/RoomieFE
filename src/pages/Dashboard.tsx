@@ -53,7 +53,7 @@ const Dashboard = () => {
   if (isLoading) {
     return (
       <Layout
-        title="Expense Tracker"
+        title="Roomie Bill Buddy"
         subtitle="Loading dashboard..."
         isManager={false}
         userName={currentUser?.name}
@@ -83,7 +83,7 @@ const Dashboard = () => {
 
   return (
     <Layout
-      title="Expense Tracker"
+      title="Roomie Bill Buddy"
       subtitle={
         <>
           Welcome, {currentUser.name}
@@ -128,6 +128,7 @@ const Dashboard = () => {
             );
           })}
       </div>
+      
 
       {/* <ExpenseStats expenses={approvedExpenses} roommates={roommates} /> */}
       <Analytics />
