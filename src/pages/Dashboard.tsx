@@ -22,7 +22,13 @@ const Dashboard = () => {
     if (sessionLoading) return;
     if (!currentUser || !roomId) {
       setLoadingExpenses(false);
-      navigate('/');
+      const storedUserId = storage.getCurrentUser();
+      const storedRoomId = storage.getCurrentRoom();
+      if (storedUserId && !storedRoomId) {
+        navigate('/room-setup');
+      } else {
+        navigate('/');
+      }
       return;
     }
 

@@ -23,6 +23,7 @@ type UserMenuProps = {
 const AVATAR_STORAGE_KEY = 'roomie-avatar';
 
 const UserMenu = ({ userName, isManager = false }: UserMenuProps) => {
+  
   const navigate = useNavigate();
   const { clearSession } = useSession();
   const initial = useMemo(() => (userName?.[0]?.toUpperCase() ?? '?'), [userName]);

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus, Shield } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { storage } from '@/lib/storage';
@@ -14,7 +15,9 @@ const SignUp = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showRoomOptions, setShowRoomOptions] = useState(false);
   const [roomIdToJoin, setRoomIdToJoin] = useState('');
+  const [newRoomName, setNewRoomName] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -43,9 +46,29 @@ const SignUp = () => {
       return;
     }
 
+    const joinRoomId = roomIdToJoin.trim();
+    const createRoomName = newRoomName.trim();
+
+    if (showRoomOptions) {
+      if (!joinRoomId && !createRoomName) {
+        toast.error('Choose to join an existing room or create a new one');
+        return;
+      }
+      if (joinRoomId && createRoomName) {
+        toast.error('Choose either join or create, not both');
+        return;
+      }
+    }
+
     try {
       setLoading(true);
-      const targetRoomId = roomIdToJoin.trim();
+      let targetRoomId = '';
+      if (showRoomOptions && createRoomName) {
+        const newRoom = await storage.createRoom(createRoomName);
+        targetRoomId = newRoom.id;
+      } else if (showRoomOptions && joinRoomId) {
+        targetRoomId = joinRoomId;
+      }
 
       await storage.createRoommate({
         name: name.trim(),
@@ -61,8 +84,9 @@ const SignUp = () => {
       } else if (targetRoomId) {
         storage.setCurrentRoom(targetRoomId);
       }
+      const destination = targetRoomId || user.roomId ? '/dashboard' : '/room-setup';
       toast.success('Account created');
-      navigate('/dashboard');
+      navigate(destination);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Could not create account';
       toast.error(message);
@@ -83,7 +107,7 @@ const SignUp = () => {
             Create your account
           </h1>
           <p className="text-muted-foreground text-lg">
-            Get started with Roomie Bill Buddy. If you have a room ID, you can join it now.
+            Get started with Roomie Bill Buddy. You can join or create a room when you sign up.
           </p>
         </div>
 
@@ -118,15 +142,7 @@ const SignUp = () => {
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="roomIdToJoin">Join existing room (ID)</Label>
-                <Input
-                  id="roomIdToJoin"
-                  value={roomIdToJoin}
-                  onChange={e => setRoomIdToJoin(e.target.value)}
-                  placeholder="Paste a room ID to join a room"
-                />
-              </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
@@ -149,6 +165,59 @@ const SignUp = () => {
                     placeholder="••••••••"
                     required
                   />
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="roomOptions"
+                  checked={showRoomOptions}
+                  aria-controls="room-options-panel"
+                  aria-expanded={showRoomOptions}
+                  onCheckedChange={checked => {
+                    const isChecked = checked === true;
+                    setShowRoomOptions(isChecked);
+                    if (!isChecked) {
+                      setRoomIdToJoin('');
+                      setNewRoomName('');
+                    }
+                  }}
+                />
+                <Label htmlFor="roomOptions">I want to join or create a room now</Label>
+              </div>
+
+              <div
+                id="room-options-panel"
+                className={`overflow-hidden motion-safe:transition-[max-height,opacity,transform] motion-safe:duration-300 motion-safe:ease-out motion-reduce:transition-none motion-reduce:translate-y-0 ${
+                  showRoomOptions
+                    ? 'max-h-[520px] opacity-100 translate-y-0'
+                    : 'max-h-0 opacity-0 -translate-y-2 pointer-events-none'
+                }`}
+                aria-hidden={!showRoomOptions}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-lg border border-border/60 bg-muted/30 p-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="roomIdToJoin">Join existing room (ID)</Label>
+                    <Input
+                      id="roomIdToJoin"
+                      value={roomIdToJoin}
+                      onChange={e => setRoomIdToJoin(e.target.value)}
+                      placeholder="Enter Room ID"
+                      disabled={!showRoomOptions}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="newRoomName">Create a new room</Label>
+                    <Input
+                      id="newRoomName"
+                      value={newRoomName}
+                      onChange={e => setNewRoomName(e.target.value)}
+                      placeholder="Room Name"
+                      disabled={!showRoomOptions}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground md:col-span-2">
+                    Choose one option to continue.
+                  </p>
                 </div>
               </div>
               <Button type="submit" className="w-full">

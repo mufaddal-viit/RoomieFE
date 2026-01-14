@@ -5,6 +5,7 @@ const API_BASE = RAW_API_BASE.replace(/\/$/, '');
 const API_BASE_URL = API_BASE.endsWith('/api') ? API_BASE : `${API_BASE}/api`;
 const CURRENT_USER_KEY = 'currentUserId';
 const CURRENT_ROOM_KEY = 'currentRoomId';
+const CURRENT_USER_PROFILE_KEY = 'currentUserProfile';
 const AUTH_TOKEN_KEY = 'authToken';
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
@@ -12,6 +13,17 @@ const normalizeEmail = (email: string) => email.trim().toLowerCase();
 const getStoredAuthToken = () => {
   if (typeof sessionStorage === 'undefined') return null;
   return sessionStorage.getItem(AUTH_TOKEN_KEY);
+};
+
+const getStoredUserProfile = () => {
+  if (typeof sessionStorage === 'undefined') return null;
+  const raw = sessionStorage.getItem(CURRENT_USER_PROFILE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as Roommate;
+  } catch {
+    return null;
+  }
 };
 
 const parseResponseBody = async (res: Response) => {
@@ -78,6 +90,18 @@ export const storage = {
   clearCurrentUser: () => {
     if (typeof sessionStorage === 'undefined') return;
     sessionStorage.removeItem(CURRENT_USER_KEY);
+  },
+
+  getCurrentUserProfile: (): Roommate | null => getStoredUserProfile(),
+
+  setCurrentUserProfile: (user: Roommate) => {
+    if (typeof sessionStorage === 'undefined') return;
+    sessionStorage.setItem(CURRENT_USER_PROFILE_KEY, JSON.stringify(user));
+  },
+
+  clearCurrentUserProfile: () => {
+    if (typeof sessionStorage === 'undefined') return;
+    sessionStorage.removeItem(CURRENT_USER_PROFILE_KEY);
   },
 
   getCurrentRoom: (): string | null => {
@@ -183,6 +207,9 @@ export const storage = {
     });
     if (auth.token) {
       storage.setAuthToken(auth.token);
+    }
+    if (auth.user) {
+      storage.setCurrentUserProfile(auth.user);
     }
     return auth.user;
   },

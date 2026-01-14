@@ -43,15 +43,17 @@ const SignIn = () => {
     try {
       setLoading(true);
       const user = await storage.authenticate(email, password);
+      let destination = '/dashboard';
       if (user.roomId) {
         await setSession(user.id, user.roomId);
       } else {
         storage.setCurrentUser(user.id);
         toast.warning('No room linked to this user. Please join a room.');
         await refreshSession();
+        destination = '/room-setup';
       }
       toast.success(`Welcome back, ${user.name}`);
-      navigate('/dashboard');
+      navigate(destination);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Invalid email or password';
       toast.error(message);

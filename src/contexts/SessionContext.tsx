@@ -22,6 +22,7 @@ const SessionProvider = ({ children }: { children: ReactNode }) => {
 
   const clearSession = useCallback(() => {
     storage.clearCurrentUser();
+    storage.clearCurrentUserProfile();
     storage.clearCurrentRoom();
     storage.clearAuthToken();
     setCurrentUser(null);
@@ -34,8 +35,16 @@ const SessionProvider = ({ children }: { children: ReactNode }) => {
     async (userIdOverride?: string, roomIdOverride?: string) => {
       const storedUserId = userIdOverride ?? storage.getCurrentUser();
       const storedRoomId = roomIdOverride ?? storage.getCurrentRoom();
-      if (!storedUserId || !storedRoomId) {
+      if (!storedUserId) {
         clearSession();
+        return;
+      }
+      if (!storedRoomId) {
+        const profile = storage.getCurrentUserProfile();
+        setCurrentUser(profile && profile.id === storedUserId ? profile : null);
+        setRoommates([]);
+        setRoomId(null);
+        setLoading(false);
         return;
       }
 
@@ -48,6 +57,7 @@ const SessionProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
         setCurrentUser(user);
+        storage.setCurrentUserProfile(user);
         setRoommates(fetchedRoommates);
         setRoomId(storedRoomId);
       } catch (error) {
