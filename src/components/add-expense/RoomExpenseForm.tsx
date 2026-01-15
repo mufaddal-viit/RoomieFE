@@ -11,6 +11,8 @@ import type { Roommate } from '@/lib/types';
 import { toast } from 'sonner';
 import { expenseFields } from '@/config/expenseFormFields';
 
+const MAX_EXPENSE_AMOUNT = 2000;
+
 type RoomExpenseFormProps = {
   currentUserId: string;
   roomId: string;
@@ -51,11 +53,22 @@ const RoomExpenseForm = ({ currentUserId, roomId, roommates }: RoomExpenseFormPr
       return;
     }
 
+    const amountValue = Number.parseFloat(amount);
+    if (Number.isNaN(amountValue)) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+
+    if (amountValue > MAX_EXPENSE_AMOUNT) {
+      toast.error(`Amount cannot exceed $${MAX_EXPENSE_AMOUNT}`);
+      return;
+    }
+
     //api call to backend 
     storage.createExpense({
       roomId,
       description: description.trim(),
-      amount: parseFloat(amount),
+      amount: amountValue,
       category,
       date: new Date().toISOString(),
       addedById: memberId,
@@ -115,6 +128,7 @@ const RoomExpenseForm = ({ currentUserId, roomId, roommates }: RoomExpenseFormPr
                     type={field.type === 'number' ? 'number' : 'text'}
                     step={field.type === 'number' ? '0.01' : undefined}
                     min={field.type === 'number' ? '0' : undefined}
+                    max={field.name === 'amount' ? `${MAX_EXPENSE_AMOUNT}` : undefined}
                     value={value}
                     onChange={(e) => setForm(prev => ({ ...prev, [field.name]: e.target.value }))}
                     placeholder={field.placeholder}

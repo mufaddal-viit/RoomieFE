@@ -2,13 +2,13 @@ import { useEffect, useState, type KeyboardEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus, Shield } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { storage } from '@/lib/storage';
 import { toast } from 'sonner';
 import { ShineBorder } from '@/components/ui/shine-border';
+import { SlideSubmitButton } from '@/components/ui/slide-submit-button';
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -276,14 +276,12 @@ const SignUp = () => {
                   </p>
                 </section>
               </section>
-              <Button
-                type="button"
-                className="h-11 w-full bg-sky-600 text-white shadow-[0_14px_30px_-16px_rgba(2,132,199,0.7)] hover:bg-sky-500"
-                disabled={loading}
-                onClick={handleSubmit}
-              >
-                {loading ? 'Creating account...' : 'Create account'}
-              </Button>
+              <SlideSubmitButton
+                onComplete={handleSubmit}
+                loading={loading}
+                label="Slide to create account"
+                loadingLabel="Creating account..."
+              />
 
               <p className="text-center text-sm text-slate-600">
                 Already registered?{' '}

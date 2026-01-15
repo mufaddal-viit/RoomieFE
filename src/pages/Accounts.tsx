@@ -3,22 +3,27 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { useSession } from '@/contexts/SessionContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Roommate } from '@/lib/types';
-
+import { storage } from '@/lib/storage';
+import { toast } from 'sonner';
+import { Badge } from "@/components/ui/badge";
+import { Pencil, UserMinus, Lock } from "lucide-react";
+import { AlertTriangle, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 const Accounts = () => {
   const navigate = useNavigate();
-  const { currentUser, roommates, roomId, loading } = useSession();
+  const { currentUser, roommates, roomId, loading, refreshSession } = useSession();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [leavingRoom, setLeavingRoom] = useState(false);
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || leavingRoom) return;
     if (!currentUser || !roomId) {
       navigate('/');
     }
-  }, [loading, currentUser, roomId, navigate]);
+  }, [loading, leavingRoom, currentUser, roomId, navigate]);
 
   const sortedRoommates = useMemo(() => {
     return [...roommates].sort((a, b) => {
@@ -65,6 +70,19 @@ const Accounts = () => {
     }
   }, [currentUser, selectedUserId]);
 
+  const handleLeaveRoom = async () => {
+    if (!roomId) return;
+    const confirmed = window.confirm(
+      'Leave this room? You will need an invite code to join it again.',
+    );
+    if (!confirmed) return;
+    setLeavingRoom(true);
+    storage.clearCurrentRoom();
+    await refreshSession();
+    toast.success('You left the room');
+    navigate('/room-setup');
+  };
+
   if (!currentUser || loading) return null;
 
   return (
@@ -93,9 +111,8 @@ const Accounts = () => {
                   type="button"
                   key={roommate.id}
                   onClick={() => setSelectedUserId(roommate.id)}
-                  className={`flex w-full flex-col gap-2 rounded-xl border px-4 py-3 text-left transition hover:border-primary/40 hover:bg-primary/5 sm:flex-row sm:items-center sm:justify-between ${
-                    isSelected ? 'border-primary/40 bg-primary/10' : 'border-muted/60 bg-muted/10'
-                  }`}
+                  className={`flex w-full flex-col gap-2 rounded-xl border px-4 py-3 text-left transition hover:border-primary/40 hover:bg-primary/5 sm:flex-row sm:items-center sm:justify-between ${isSelected ? 'border-primary/40 bg-primary/10' : 'border-muted/60 bg-muted/10'
+                    }`}
                   aria-pressed={isSelected}
                 >
                   <div className="flex items-center gap-3 ">
@@ -176,21 +193,89 @@ const Accounts = () => {
                 </div>
 
                 {currentUser.isManager && selectedUser.id !== currentUser.id && (
-                  <div className="rounded-lg border border-muted/60 bg-background/80 p-3">
-                    <p className="text-xs font-medium text-muted-foreground">Manager actions</p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <Button type="button" variant="outline" disabled>
+                  <div className="rounded-xl border border-muted/60 bg-background/70 p-4 shadow-sm backdrop-blur">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold leading-none">Manager actions</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Manage this member’s access and status.
+                        </p>
+                      </div>
+
+                      <Badge variant="secondary" className="gap-1">
+                        <Lock className="h-3.5 w-3.5" />
+                        Coming soon
+                      </Badge>
+                    </div>
+
+                    <Separator className="my-3" />
+
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled
+                        className="gap-2"
+                        aria-disabled="true"
+                        title="Coming soon"
+                      >
+                        <Pencil className="h-4 w-4" />
                         Edit member
                       </Button>
-                      <Button type="button" variant="outline" disabled>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled
+                        className="gap-2"
+                        aria-disabled="true"
+                        title="Coming soon"
+                      >
+                        <UserMinus className="h-4 w-4" />
                         Remove member
                       </Button>
                     </div>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      Member management actions are coming soon.
-                    </p>
+
+                    <div className="mt-3 rounded-lg border border-dashed border-muted/70 bg-muted/30 px-3 py-2">
+                      <p className="text-xs text-muted-foreground">
+                        Member management actions are not available yet.
+                      </p>
+                    </div>
                   </div>
                 )}
+
+
+
+                <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 dark:bg-destructive text-destructive">
+                      <AlertTriangle className="h-4 w-4 dark:text-white" />
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-semibold leading-none text-destructive dark:text-white">
+                        Room actions
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Leaving will immediately remove this room from your current session.
+                      </p>
+                    </div>
+                  </div>
+
+                  <Separator className="my-3" />
+
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    className="w-full sm:w-auto gap-2"
+                    onClick={handleLeaveRoom}
+                    disabled={leavingRoom}
+                  >
+                    <LogOut className="h-4 w-4 " />
+                    {leavingRoom ? "Leaving room…" : "Leave room"}
+                  </Button>
+                </div>
+
               </div>
             )}
           </CardContent>

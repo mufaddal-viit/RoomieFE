@@ -10,6 +10,8 @@ import { Roommate } from '@/lib/types';
 import { toast } from 'sonner';
 import { useSession } from '@/contexts/SessionContext';
 import { ShineBorder } from '@/components/ui/shine-border';
+import { SlideSubmitButton } from '@/components/ui/slide-submit-button';
+import { SwipeableButton } from 'react-swipeable-button';
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -138,14 +140,15 @@ const SignIn = () => {
                 required
               />
             </section>
-            <Button
-              type="button"
-              className="h-11 w-full bg-sky-600 text-white shadow-[0_14px_30px_-16px_rgba(2,132,199,0.7)] hover:bg-sky-500"
-              disabled={loading}
-              onClick={handleSubmit}
-            >
-              {loading ? 'Signing in...' : 'Sign in'}
-            </Button>
+            <SlideSubmitButton
+              onComplete={handleSubmit}
+              loading={loading}
+              label="Slide to sign in"
+              loadingLabel="Signing in..."
+            />
+
+
+
             <p className="text-center text-sm text-slate-600">
               New here?{' '}
               <Link to="/signup" className="font-medium text-sky-700 hover:text-sky-900">

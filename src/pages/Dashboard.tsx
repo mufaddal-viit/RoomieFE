@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { storage } from '@/lib/storage';
 import { Expense } from '@/lib/types';
-import ExpenseList from '@/components/ExpenseList';
 import StatsCard from '@/components/StatsCard';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,8 @@ import Analytics from './Analytics';
 import { dashboardStats } from '@/config/dashboardStats';
 import { dashboardMenuItems } from '@/config/dashboardMenuItems';
 import DashboardSkeleton from '@/components/DashboardSkeleton';
+
+const ExpenseList = lazy(() => import('@/components/ExpenseList'));
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -128,12 +129,16 @@ const Dashboard = () => {
             );
           })}
       </div>
-      
+
 
       {/* <ExpenseStats expenses={approvedExpenses} roommates={roommates} /> */}
-      <Analytics />
+      <Suspense fallback={<div className="text-sm text-muted-foreground">Loading Analytics...</div>}>
+        <Analytics />
+      </Suspense>
 
-      <ExpenseList expenses={expenses} />
+      <Suspense fallback={<div className="text-sm text-muted-foreground">Loading expenses...</div>}>
+        <ExpenseList expenses={expenses} />
+      </Suspense>
     </Layout>
   );
 };
