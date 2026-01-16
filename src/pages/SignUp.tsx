@@ -30,6 +30,7 @@ const SignUp = () => {
 
   const handleSubmit = async () => {
     if (loading) return;
+
     if (!name.trim() || !email.trim() || !password || !confirmPassword) {
       toast.error('Please fill in all fields');
       return;
@@ -53,6 +54,7 @@ const SignUp = () => {
         toast.error('Choose to join an existing room or create a new one');
         return;
       }
+
       if (joinRoomId && createRoomName) {
         toast.error('Choose either join or create, not both');
         return;
@@ -61,7 +63,9 @@ const SignUp = () => {
 
     try {
       setLoading(true);
-      let targetRoomId = '';
+
+      let targetRoomId: string | null = null;
+
       if (showRoomOptions && createRoomName) {
         const newRoom = await storage.createRoom(createRoomName);
         targetRoomId = newRoom.id;
@@ -69,30 +73,44 @@ const SignUp = () => {
         targetRoomId = joinRoomId;
       }
 
+      const inviteCode = targetRoomId;
+
       await storage.createRoommate({
         name: name.trim(),
         email: email.trim(),
         password,
-        ...(targetRoomId ? { roomId: targetRoomId } : {}),
+        ...(inviteCode ? { inviteCode } : {}),
       });
 
+
       const user = await storage.authenticate(email.trim(), password);
+
       storage.setCurrentUser(user.id);
-      if (user.roomId) {
-        storage.setCurrentRoom(user.roomId);
-      } else if (targetRoomId) {
-        storage.setCurrentRoom(targetRoomId);
+
+      const effectiveRoomId = user.roomId ?? targetRoomId;
+
+      if (effectiveRoomId) {
+        storage.setCurrentRoom(effectiveRoomId);
       }
-      const destination = targetRoomId || user.roomId ? '/dashboard' : '/room-setup';
+
+      const destination = effectiveRoomId
+        ? '/dashboard'
+        : '/room-setup';
+
       toast.success('Account created');
       navigate(destination);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Could not create account';
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Could not create account';
+
       toast.error(message);
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key !== 'Enter' || loading) return;
@@ -235,11 +253,10 @@ const SignUp = () => {
 
               <section
                 id="room-options-panel"
-                className={`overflow-hidden motion-safe:transition-[max-height,opacity,transform] motion-safe:duration-300 motion-safe:ease-out motion-reduce:transition-none motion-reduce:translate-y-0 ${
-                  showRoomOptions
-                    ? 'max-h-[520px] opacity-100 translate-y-0'
-                    : 'max-h-0 opacity-0 -translate-y-2 pointer-events-none'
-                }`}
+                className={`overflow-hidden motion-safe:transition-[max-height,opacity,transform] motion-safe:duration-300 motion-safe:ease-out motion-reduce:transition-none motion-reduce:translate-y-0 ${showRoomOptions
+                  ? 'max-h-[520px] opacity-100 translate-y-0'
+                  : 'max-h-0 opacity-0 -translate-y-2 pointer-events-none'
+                  }`}
                 aria-hidden={!showRoomOptions}
               >
                 <section className="grid grid-cols-1 gap-4 rounded-lg border border-sky-100/70 bg-sky-50/50 p-4 md:grid-cols-2">

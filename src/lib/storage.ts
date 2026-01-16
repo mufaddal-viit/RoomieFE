@@ -165,23 +165,25 @@ export const storage = {
   },
 
   createRoommate: async (params: {
-    name: string;
-    email: string;
-    password: string;
-    roomId?: string;
-    isManager?: boolean;
-  }): Promise<Roommate> => {
-    const payload = {
-      name: params.name.trim(),
-      email: normalizeEmail(params.email),
-      password: params.password,
-      ...(params.roomId ? { roomId: params.roomId.trim() } : {}),
-    };
-    return request<Roommate>('/roommates/register', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-  },
+  name: string;
+  email: string;
+  password: string;
+  inviteCode?: string;
+}) => {
+  const payload = {
+    name: params.name.trim(),
+    email: normalizeEmail(params.email),
+    password: params.password,
+    ...(params.inviteCode
+      ? { roomId: params.inviteCode.trim() }
+      : {}),
+  };
+
+  return request('/roommates/register', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+},
 
   addMember: async (params: { roommateId?: string; email?: string }): Promise<Roommate> => {
     const payload: { roommateId?: string; email?: string } = {};
@@ -240,27 +242,27 @@ export const storage = {
     });
   },
 
-  initializeRoommates: async (names: string[], roomName = 'Household'): Promise<{
-    room: Room;
-    roommates: Roommate[];
-  }> => {
-    if (names.length === 0) {
-      throw new Error('At least one roommate is required');
-    }
+  // initializeRoommates: async (names: string[], roomName = 'Household'): Promise<{
+  //   room: Room;
+  //   roommates: Roommate[];
+  // }> => {
+  //   if (names.length === 0) {
+  //     throw new Error('At least one roommate is required');
+  //   }
 
-    const room = await storage.createRoom(roomName);
-    const roommates: Roommate[] = [];
-    for (let i = 0; i < names.length; i++) {
-      const roommate = await storage.createRoommate({
-        name: names[i],
-        email: `${names[i].replace(/\s+/g, '.').toLowerCase()}@example.com`,
-        password: 'password',
-        roomId: room.id,
-        isManager: i === 0,
-      });
-      roommates.push(roommate);
-    }
+  //   const room = await storage.createRoom(roomName);
+  //   const roommates: Roommate[] = [];
+  //   for (let i = 0; i < names.length; i++) {
+  //     const roommate = await storage.createRoommate({
+  //       name: names[i],
+  //       email: `${names[i].replace(/\s+/g, '.').toLowerCase()}@example.com`,
+  //       password: 'password',
+  //       roomId: room.id,
+  //       isManager: i === 0,
+  //     });
+  //     roommates.push(roommate);
+  //   }
 
-    return { room, roommates };
-  },
+  //   return { room, roommates };
+  // },
 };
