@@ -164,26 +164,33 @@ export const storage = {
     return request<Roommate[]>(`/rooms/${roomId}/roommates`);
   },
 
-  createRoommate: async (params: {
+ createRoommate: async (params: {
   name: string;
   email: string;
   password: string;
-  inviteCode?: string;
-}) => {
-  const payload = {
+  roomId?: string;      // used when creating a room
+  inviteCode?: string;  // used when joining a room
+}): Promise<Roommate> => {
+  const payload: Record<string, string> = {
     name: params.name.trim(),
     email: normalizeEmail(params.email),
     password: params.password,
-    ...(params.inviteCode
-      ? { roomId: params.inviteCode.trim() }
-      : {}),
   };
 
-  return request('/roommates/register', {
+  if (params.roomId) {
+    payload.roomId = params.roomId;
+  }
+
+  if (params.inviteCode) {
+    payload.inviteCode = params.inviteCode.trim();
+  }
+
+  return request<Roommate>('/roommates/register', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
-},
+}
+,
 
   addMember: async (params: { roommateId?: string; email?: string }): Promise<Roommate> => {
     const payload: { roommateId?: string; email?: string } = {};

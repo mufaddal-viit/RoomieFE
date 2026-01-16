@@ -46,16 +46,16 @@ const SignUp = () => {
       return;
     }
 
-    const joinRoomId = roomIdToJoin.trim();
-    const createRoomName = newRoomName.trim();
+    const joinRoomInviteCode = roomIdToJoin.trim();
+    const newRoomNameTrimmed = newRoomName.trim();
 
     if (showRoomOptions) {
-      if (!joinRoomId && !createRoomName) {
+      if (!joinRoomInviteCode && !newRoomNameTrimmed) {
         toast.error('Choose to join an existing room or create a new one');
         return;
       }
 
-      if (joinRoomId && createRoomName) {
+      if (joinRoomInviteCode && newRoomNameTrimmed) {
         toast.error('Choose either join or create, not both');
         return;
       }
@@ -64,52 +64,47 @@ const SignUp = () => {
     try {
       setLoading(true);
 
-      let targetRoomId: string | null = null;
+      let roomPayload: { roomId?: string; inviteCode?: string } = {};
 
-      if (showRoomOptions && createRoomName) {
-        const newRoom = await storage.createRoom(createRoomName);
-        targetRoomId = newRoom.id;
-      } else if (showRoomOptions && joinRoomId) {
-        targetRoomId = joinRoomId;
+      if (showRoomOptions && newRoomNameTrimmed) {
+        // CREATE ROOM FLOW
+        const newRoom = await storage.createRoom(newRoomNameTrimmed);
+        roomPayload.roomId = newRoom.id; // pass actual room.id for creation
+      } else if (showRoomOptions && joinRoomInviteCode) {
+        // JOIN ROOM FLOW
+        roomPayload.inviteCode = joinRoomInviteCode; // pass invite code for joining
       }
 
-      const inviteCode = targetRoomId;
-
+      // CREATE ROOMMATE
       await storage.createRoommate({
         name: name.trim(),
         email: email.trim(),
         password,
-        ...(inviteCode ? { inviteCode } : {}),
+        ...roomPayload,
       });
 
-
+      // Authenticate user after creation
       const user = await storage.authenticate(email.trim(), password);
-
       storage.setCurrentUser(user.id);
 
-      const effectiveRoomId = user.roomId ?? targetRoomId;
-
+      // Determine effective room
+      const effectiveRoomId = user.roomId ?? roomPayload.roomId;
       if (effectiveRoomId) {
         storage.setCurrentRoom(effectiveRoomId);
       }
 
-      const destination = effectiveRoomId
-        ? '/dashboard'
-        : '/room-setup';
+      const destination = effectiveRoomId ? '/dashboard' : '/room-setup';
 
       toast.success('Account created');
       navigate(destination);
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'Could not create account';
-
+      const message = error instanceof Error ? error.message : 'Could not create account';
       toast.error(message);
     } finally {
       setLoading(false);
     }
   };
+
 
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
