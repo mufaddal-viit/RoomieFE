@@ -11,7 +11,8 @@ import { toast } from 'sonner';
 import { useSession } from '@/contexts/SessionContext';
 import { ShineBorder } from '@/components/ui/shine-border';
 import { SlideSubmitButton } from '@/components/ui/slide-submit-button';
-import { SwipeableButton } from 'react-swipeable-button';
+import ParticleBackground from '@/components/Particle';
+// import { SwipeableButton } from 'react-swipeable-button';
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -78,7 +79,9 @@ const SignIn = () => {
   };
 
   return (
+
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-50 via-background to-teal-50 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-700">
+      <ParticleBackground />
       <span
         aria-hidden
         className="pointer-events-none absolute -left-20 -top-16 h-72 w-72 rounded-full bg-sky-300/30 blur-3xl"

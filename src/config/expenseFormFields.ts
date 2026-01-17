@@ -14,9 +14,9 @@ const EXPENSE_CATEGORIES = [
 ] as const;
 
 type ExpenseField = {
-  name: 'memberId' | 'amount' | 'description' | 'category' | string;
+  name: 'memberId' | 'amount' | 'description' | 'category' | 'date' | string;
   label: string;
-  type: 'text' | 'number' | 'textarea' | 'select';
+  type: 'text' | 'number' | 'textarea' | 'select' | 'calendar';
   placeholder?: string;
   options?: { label: string; value: string }[];
   getOptions?: (roommates: Roommate[], currentUserId?: string) => { label: string; value: string }[];
@@ -35,8 +35,14 @@ export const expenseFields: ExpenseField[] = [
       })),
   },
   {
+    name: 'date',
+    label: 'Date',
+    type: 'calendar',
+    placeholder: 'Pick a date',
+  },
+  {
     name: 'amount',
-    label: 'Amount ($)',
+    label: 'Amount (AED)',
     type: 'number',
     placeholder: '0.00',
   },
@@ -46,6 +52,7 @@ export const expenseFields: ExpenseField[] = [
     type: 'textarea',
     placeholder: 'What was purchased?',
   },
+  
   {
     name: 'category',
     label: 'Category',

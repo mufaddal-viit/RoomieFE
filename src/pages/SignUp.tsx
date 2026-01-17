@@ -9,6 +9,7 @@ import { storage } from '@/lib/storage';
 import { toast } from 'sonner';
 import { ShineBorder } from '@/components/ui/shine-border';
 import { SlideSubmitButton } from '@/components/ui/slide-submit-button';
+import ParticleBackground from '@/components/Particle';
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -115,6 +116,7 @@ const SignUp = () => {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-50 via-background to-teal-50 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-700">
+      <ParticleBackground />
       <span
         aria-hidden
         className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-sky-300/25 blur-3xl"

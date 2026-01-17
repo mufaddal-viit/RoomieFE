@@ -4,12 +4,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { storage } from '@/lib/storage';
 import type { Roommate } from '@/lib/types';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { expenseFields } from '@/config/expenseFormFields';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
 
 const MAX_EXPENSE_AMOUNT = 2000;
 
@@ -33,6 +39,7 @@ const RoomExpenseForm = ({ currentUserId, roomId, roommates }: RoomExpenseFormPr
     []
   );
   const [form, setForm] = useState<Record<string, string>>(initialForm);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     setForm(prev => ({ ...prev, memberId: currentUserId }));
@@ -40,8 +47,14 @@ const RoomExpenseForm = ({ currentUserId, roomId, roommates }: RoomExpenseFormPr
 
   const { description, amount, category, memberId } = form;
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
+    if (!currentUserId || !storage.getAuthToken()) {
+      toast.error('You must be signed in to submit an expense');
+      return;
+    }
 
     const missingRequired = expenseFields.some(field => {
       const value = form[field.name];
@@ -64,23 +77,32 @@ const RoomExpenseForm = ({ currentUserId, roomId, roommates }: RoomExpenseFormPr
       return;
     }
 
-    //api call to backend 
-    storage.createExpense({
-      roomId,
-      description: description.trim(),
-      amount: amountValue,
-      category,
-      date: new Date().toISOString(),
-      addedById: memberId,
-    })
-      .then(() => {
-        toast.success('Expense added successfully! Waiting for manager approval.');
-        navigate('/dashboard');
-      })
-      .catch(err => {
-        const message = err instanceof Error ? err.message : 'Failed to add expense';
-        toast.error(message);
+    const parsedDate = form.date ? new Date(form.date) : null;
+    if (!parsedDate || Number.isNaN(parsedDate.getTime())) {
+      toast.error('Please select a valid date');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      //api call to backend 
+      await storage.createExpense({
+        roomId,
+        description: description.trim(),
+        amount: amountValue,
+        category,
+        date: parsedDate.toISOString(),
+        addedById: currentUserId,
       });
+      toast.success('Expense added successfully! Waiting for manager approval.');
+      setForm({ ...initialForm, memberId: currentUserId });
+      // navigate('/dashboard');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to add expense';
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -93,14 +115,47 @@ const RoomExpenseForm = ({ currentUserId, roomId, roommates }: RoomExpenseFormPr
           {expenseFields.map(field => {
             const value = form[field.name] ?? '';
             const options = field.getOptions ? field.getOptions(roommates, currentUserId) : field.options ?? [];
+            const isMemberField = field.name === 'memberId';
+            const parsedDate = field.type === 'calendar' && value ? new Date(value) : undefined;
+            const selectedDate =
+              parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate : undefined;
 
             return (
               <div key={field.name}>
                 <Label htmlFor={field.name}>{field.label}</Label>
-                {field.type === 'select' ? (
+                {field.type === 'calendar' ? (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        id={field.name}
+                        type="button"
+                        variant="outline"
+                        className={cn(
+                          'w-full justify-start text-left font-normal',
+                          !selectedDate && 'text-muted-foreground'
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {selectedDate ? format(selectedDate, 'PPP') : field.placeholder || 'Pick a date'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={(date) =>
+                          setForm(prev => ({ ...prev, [field.name]: date ? date.toISOString() : '' }))
+                        }
+                        disabled={(date) => date > new Date()}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                ) : field.type === 'select' ? (
                   <Select
                     value={value}
                     onValueChange={(val) => setForm(prev => ({ ...prev, [field.name]: val }))}
+                    disabled={isMemberField}
                     required
                   >
                     <SelectTrigger>
@@ -140,8 +195,15 @@ const RoomExpenseForm = ({ currentUserId, roomId, roommates }: RoomExpenseFormPr
           })}
 
           <div className="flex flex-col gap-3 pt-4 sm:flex-row">
-            <Button type="submit" className="w-full sm:flex-1">
-              Add Expense
+            <Button type="submit" className="w-full sm:flex-1" disabled={isSubmitting} aria-busy={isSubmitting}>
+              {isSubmitting ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Spinner className="size-4" aria-hidden="true" />
+                  Adding...
+                </span>
+              ) : (
+                'Add Expense'
+              )}
             </Button>
             <Button
               type="button"
