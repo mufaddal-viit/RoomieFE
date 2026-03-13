@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Layout from '@/components/Layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useSession } from '@/contexts/SessionContext';
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import Layout from "@/components/layout/Layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSession } from "@/contexts/SessionContext";
 
 const Savings = () => {
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ const Savings = () => {
   useEffect(() => {
     if (loading) return;
     if (!currentUser || !roomId) {
-      navigate('/');
+      navigate("/");
     }
   }, [loading, currentUser, roomId, navigate]);
 

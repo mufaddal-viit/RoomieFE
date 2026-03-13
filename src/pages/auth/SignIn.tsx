@@ -1,39 +1,45 @@
-import { useEffect, useState, type KeyboardEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ShieldCheck, Users } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { storage } from '@/lib/storage';
-import { Roommate } from '@/lib/types';
-import { toast } from 'sonner';
-import { useSession } from '@/contexts/SessionContext';
-import { ShineBorder } from '@/components/ui/shine-border';
-import { SlideSubmitButton } from '@/components/ui/slide-submit-button';
-import ParticleBackground from '@/components/Particle';
+import { useEffect, useState, type KeyboardEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ShieldCheck, Users } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { api } from "@/lib/api";
+import { Roommate } from "@/lib/types";
+import { toast } from "sonner";
+import { useSession } from "@/contexts/SessionContext";
+import { ShineBorder } from "@/components/ui/shine-border";
+import { SlideSubmitButton } from "@/components/ui/slide-submit-button";
+import ParticleBackground from "@/components/ui/Particle";
 // import { SwipeableButton } from 'react-swipeable-button';
 
 const SignIn = () => {
   const navigate = useNavigate();
   const { setSession, refreshSession } = useSession();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [roommates, setRoommates] = useState<Roommate[]>([]);
   const [loading, setLoading] = useState(false);
   const defaultRoomId = import.meta.env.VITE_DEFAULT_ROOM_ID;
 
   useEffect(() => {
-    const currentUser = storage.getCurrentUser();
-    const currentRoom = storage.getCurrentRoom();
+    const currentUser = api.session.getCurrentUser();
+    const currentRoom = api.session.getCurrentRoom();
     if (currentUser && currentRoom) {
-      navigate('/dashboard');
+      navigate("/dashboard");
       return;
     }
     const loadRoommates = async () => {
       if (!defaultRoomId) return;
       try {
-        const list = await storage.getRoommates(defaultRoomId);
+        const list = await api.roommates.listByRoom(defaultRoomId);
         setRoommates(list);
       } catch (error) {
         console.error(error);
@@ -46,20 +52,21 @@ const SignIn = () => {
     if (loading) return;
     try {
       setLoading(true);
-      const user = await storage.authenticate(email, password);
-      let destination = '/dashboard';
+      const user = await api.auth.authenticate(email, password);
+      let destination = "/dashboard";
       if (user.roomId) {
         await setSession(user.id, user.roomId);
       } else {
-        storage.setCurrentUser(user.id);
-        toast.warning('No room linked to this user. Please join a room.');
+        api.session.setCurrentUser(user.id);
+        toast.warning("No room linked to this user. Please join a room.");
         await refreshSession();
-        destination = '/room-setup';
+        destination = "/room-setup";
       }
       toast.success(`Welcome back, ${user.name}`);
       navigate(destination);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Invalid email or password';
+      const message =
+        error instanceof Error ? error.message : "Invalid email or password";
       toast.error(message);
     } finally {
       setLoading(false);
@@ -67,7 +74,7 @@ const SignIn = () => {
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key !== 'Enter' || loading) return;
+    if (event.key !== "Enter" || loading) return;
     event.preventDefault();
     void handleSubmit();
   };
@@ -75,11 +82,10 @@ const SignIn = () => {
   const handleQuickSelect = async (roommate: Roommate) => {
     await setSession(roommate.id, roommate.roomId);
     toast.success(`Signed in as ${roommate.name}`);
-    navigate('/dashboard');
+    navigate("/dashboard");
   };
 
   return (
-
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-50 via-background to-teal-50 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-700">
       <ParticleBackground />
       <span
@@ -92,7 +98,11 @@ const SignIn = () => {
       />
       <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-lg flex-col justify-center gap-6 px-4 py-10 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-6 motion-safe:duration-700">
         <Card className="relative overflow-hidden border border-white/40 bg-background/80 shadow-[0_25px_60px_-35px_rgba(14,116,144,0.45)] backdrop-blur-xl">
-          <ShineBorder shineColor={['#A07CFE', '#FE8FB5', '#FFBE7B']} borderWidth={3} duration={20} />
+          <ShineBorder
+            shineColor={["#A07CFE", "#FE8FB5", "#FFBE7B"]}
+            borderWidth={3}
+            duration={20}
+          />
           <span
             aria-hidden
             className="pointer-events-none absolute inset-0 bg-gradient-to-br from-sky-500/10 via-transparent to-teal-400/10"
@@ -106,7 +116,8 @@ const SignIn = () => {
               Welcome back
             </CardTitle>
             <CardDescription className="text-slate-600">
-              Breeze through shared expenses with a clearer, calmer way to split bills.
+              Breeze through shared expenses with a clearer, calmer way to split
+              bills.
             </CardDescription>
           </CardHeader>
           <CardContent className="relative z-10 space-y-4">
@@ -118,7 +129,7 @@ const SignIn = () => {
                 id="email"
                 type="email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 onKeyDown={handleKeyDown}
                 autoComplete="email"
                 autoCapitalize="none"
@@ -135,7 +146,7 @@ const SignIn = () => {
                 id="password"
                 type="password"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={handleKeyDown}
                 autoComplete="current-password"
                 placeholder="********"
@@ -150,11 +161,12 @@ const SignIn = () => {
               loadingLabel="Signing in..."
             />
 
-
-
             <p className="text-center text-sm text-slate-600">
-              New here?{' '}
-              <Link to="/signup" className="font-medium text-sky-700 hover:text-sky-900">
+              New here?{" "}
+              <Link
+                to="/signup"
+                className="font-medium text-sky-700 hover:text-sky-900"
+              >
                 Create an account
               </Link>
             </p>

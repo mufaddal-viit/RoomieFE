@@ -1,8 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Expense } from '@/lib/types';
-import { useNavigate } from 'react-router-dom';
-import { Button } from './ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Expense } from "@/lib/types";
+import { useNavigate } from "react-router-dom";
+import { Button } from "../ui/button";
 
 interface ExpenseListProps {
   expenses: Expense[];
@@ -12,7 +12,7 @@ const ExpenseList = ({ expenses }: ExpenseListProps) => {
   const navigate = useNavigate();
 
   const sortedExpenses = [...expenses].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
   );
 
   return (
@@ -21,9 +21,9 @@ const ExpenseList = ({ expenses }: ExpenseListProps) => {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle>Recent Expenses</CardTitle>
           <Button
-            variant='ghost'
+            variant="ghost"
             className="self-start text-sm font-medium text-primary hover:underline sm:self-auto"
-            onClick={() => navigate('/expenses')}
+            onClick={() => navigate("/expenses")}
           >
             View All
           </Button>
@@ -47,29 +47,31 @@ const ExpenseList = ({ expenses }: ExpenseListProps) => {
                     <Badge variant="secondary" className="text-xs">
                       {expense.category}
                     </Badge>
-                    {expense.status === 'approved' && (
+                    {expense.status === "approved" && (
                       <Badge className="bg-success text-success-foreground text-xs">
                         Approved
                       </Badge>
                     )}
-                    {expense.status === 'pending' && (
+                    {expense.status === "pending" && (
                       <Badge className="bg-warning text-warning-foreground text-xs">
                         Pending
                       </Badge>
                     )}
-                    {expense.status === 'rejected' && (
+                    {expense.status === "rejected" && (
                       <Badge variant="destructive" className="text-xs">
                         Rejected
                       </Badge>
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Added by {expense.addedByName || 'Unknown'} on{' '}
+                    Added by {expense.addedByName || "Unknown"} on{" "}
                     {new Date(expense.date).toLocaleDateString()}
                   </p>
                 </div>
                 <div className="text-left sm:text-right">
-                  <p className="text-lg font-bold">${expense.amount.toFixed(2)}</p>
+                  <p className="text-lg font-bold">
+                    ${expense.amount.toFixed(2)}
+                  </p>
                 </div>
               </div>
             ))

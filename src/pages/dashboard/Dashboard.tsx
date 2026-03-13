@@ -1,21 +1,26 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { storage } from '@/lib/storage';
-import { Expense } from '@/lib/types';
-import StatsCard from '@/components/StatsCard';
-import Layout from '@/components/Layout';
-import { Button } from '@/components/ui/button';
-import { useSession } from '@/contexts/SessionContext';
-import Analytics from './Analytics';
-import { dashboardStats } from '@/config/dashboardStats';
-import { dashboardMenuItems } from '@/config/dashboardMenuItems';
-import DashboardSkeleton from '@/components/DashboardSkeleton';
+import { useState, useEffect, lazy, Suspense } from "react";
+import { useNavigate } from "react-router-dom";
+import { api } from "@/lib/api";
+import { Expense } from "@/lib/types";
+import StatsCard from "@/components/StatsCard";
+import Layout from "@/components/layout/Layout";
+import { Button } from "@/components/ui/button";
+import { useSession } from "@/contexts/SessionContext";
+import Analytics from "./Analytics";
+import { dashboardStats } from "@/config/dashboardStats";
+import { dashboardMenuItems } from "@/config/dashboardMenuItems";
+import DashboardSkeleton from "@/components/layout/DashboardSkeleton";
 
-const ExpenseList = lazy(() => import('@/components/ExpenseList'));
+const ExpenseList = lazy(() => import("@/components/expenses/ExpenseList"));
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { currentUser, roommates, roomId, loading: sessionLoading } = useSession();
+  const {
+    currentUser,
+    roommates,
+    roomId,
+    loading: sessionLoading,
+  } = useSession();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loadingExpenses, setLoadingExpenses] = useState(true);
 
@@ -23,12 +28,12 @@ const Dashboard = () => {
     if (sessionLoading) return;
     if (!currentUser || !roomId) {
       setLoadingExpenses(false);
-      const storedUserId = storage.getCurrentUser();
-      const storedRoomId = storage.getCurrentRoom();
+      const storedUserId = api.session.getCurrentUser();
+      const storedRoomId = api.session.getCurrentRoom();
       if (storedUserId && !storedRoomId) {
-        navigate('/room-setup');
+        navigate("/room-setup");
       } else {
-        navigate('/');
+        navigate("/");
       }
       return;
     }
@@ -36,11 +41,11 @@ const Dashboard = () => {
     const loadExpenses = async () => {
       try {
         setLoadingExpenses(true);
-        const roomExpenses = await storage.getExpenses(roomId);
+        const roomExpenses = await api.expenses.listByRoom(roomId);
         setExpenses(roomExpenses);
       } catch (error) {
         console.error(error);
-        navigate('/');
+        navigate("/");
       } finally {
         setLoadingExpenses(false);
       }
@@ -65,10 +70,11 @@ const Dashboard = () => {
     );
   }
 
-  const approvedExpenses = expenses.filter(e => e.status === 'approved');
+  const approvedExpenses = expenses.filter((e) => e.status === "approved");
   const totalExpense = approvedExpenses.reduce((sum, e) => sum + e.amount, 0);
-  const perPersonShare = roommates.length > 0 ? totalExpense / roommates.length : 0;
-  const pendingCount = expenses.filter(e => e.status === 'pending').length;
+  const perPersonShare =
+    roommates.length > 0 ? totalExpense / roommates.length : 0;
+  const pendingCount = expenses.filter((e) => e.status === "pending").length;
   const statsInput = {
     totalExpense,
     perPersonShare,
@@ -88,7 +94,7 @@ const Dashboard = () => {
       subtitle={
         <>
           Welcome, {currentUser.name}
-          {currentUser.isManager && ' (Manager)'}
+          {currentUser.isManager && " (Manager)"}
         </>
       }
       isManager={!!currentUser.isManager}
@@ -112,15 +118,18 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:flex xl:flex-wrap">
         {dashboardMenuItems
-          .filter(item => !item.requiresManager || menuInput.isManager)
+          .filter((item) => !item.requiresManager || menuInput.isManager)
           .map((item) => {
-            const label = typeof item.label === 'function' ? item.label(menuInput) : item.label;
+            const label =
+              typeof item.label === "function"
+                ? item.label(menuInput)
+                : item.label;
             const Icon = item.icon;
             return (
               <Button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                variant={item.variant ?? 'outline'}
+                variant={item.variant ?? "outline"}
                 className="w-full justify-start sm:justify-center xl:w-auto"
               >
                 {Icon && <Icon className="h-4 w-4 mr-2" />}
@@ -130,13 +139,24 @@ const Dashboard = () => {
           })}
       </div>
 
-
       {/* <ExpenseStats expenses={approvedExpenses} roommates={roommates} /> */}
-      <Suspense fallback={<div className="text-sm text-muted-foreground">Loading Analytics...</div>}>
+      <Suspense
+        fallback={
+          <div className="text-sm text-muted-foreground">
+            Loading Analytics...
+          </div>
+        }
+      >
         <Analytics />
       </Suspense>
 
-      <Suspense fallback={<div className="text-sm text-muted-foreground">Loading expenses...</div>}>
+      <Suspense
+        fallback={
+          <div className="text-sm text-muted-foreground">
+            Loading expenses...
+          </div>
+        }
+      >
         <ExpenseList expenses={expenses} />
       </Suspense>
     </Layout>

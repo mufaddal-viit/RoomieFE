@@ -1,17 +1,17 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import Layout from '@/components/Layout';
-import { useSession } from '@/contexts/SessionContext';
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Layout from "@/components/layout/Layout";
+import { useSession } from "@/contexts/SessionContext";
 
-const Personal = () => {
+const Namaz = () => {
   const navigate = useNavigate();
   const { currentUser, loading, roomId } = useSession();
 
   useEffect(() => {
     if (loading) return;
     if (!currentUser || !roomId) {
-      navigate('/');
+      navigate("/");
     }
   }, [loading, currentUser, roomId, navigate]);
 
@@ -19,7 +19,7 @@ const Personal = () => {
 
   return (
     <Layout
-      title="Personal Expenses"
+      title="Namaz Tracker"
       userName={currentUser.name}
       isManager={!!currentUser.isManager}
       contentClassName="max-w-3xl space-y-4"
@@ -29,11 +29,11 @@ const Personal = () => {
           <CardTitle>Coming Soon</CardTitle>
         </CardHeader>
         <CardContent className="text-muted-foreground">
-          This page will track your personal expenses separate from shared room costs.
+          This page will let you log daily Namaz progress and view streaks.
         </CardContent>
       </Card>
     </Layout>
   );
 };
 
-export default Personal;
+export default Namaz;

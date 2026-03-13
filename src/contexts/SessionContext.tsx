@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { storage } from '@/lib/storage';
+import { api } from '@/lib/api';
 import type { Roommate } from '@/lib/types';
 
 type SessionContextValue = {
@@ -21,10 +21,10 @@ const SessionProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const clearSession = useCallback(() => {
-    storage.clearCurrentUser();
-    storage.clearCurrentUserProfile();
-    storage.clearCurrentRoom();
-    storage.clearAuthToken();
+    api.session.clearCurrentUser();
+    api.session.clearCurrentUserProfile();
+    api.session.clearCurrentRoom();
+    api.session.clearAuthToken();
     setCurrentUser(null);
     setRoommates([]);
     setRoomId(null);
@@ -33,14 +33,14 @@ const SessionProvider = ({ children }: { children: ReactNode }) => {
 
   const loadSession = useCallback(
     async (userIdOverride?: string, roomIdOverride?: string) => {
-      const storedUserId = userIdOverride ?? storage.getCurrentUser();
-      const storedRoomId = roomIdOverride ?? storage.getCurrentRoom();
+      const storedUserId = userIdOverride ?? api.session.getCurrentUser();
+      const storedRoomId = roomIdOverride ?? api.session.getCurrentRoom();
       if (!storedUserId) {
         clearSession();
         return;
       }
       if (!storedRoomId) {
-        const profile = storage.getCurrentUserProfile();
+        const profile = api.session.getCurrentUserProfile();
         setCurrentUser(profile && profile.id === storedUserId ? profile : null);
         setRoommates([]);
         setRoomId(null);
@@ -50,14 +50,14 @@ const SessionProvider = ({ children }: { children: ReactNode }) => {
 
       setLoading(true);
       try {
-        const fetchedRoommates = await storage.getRoommates(storedRoomId);
+        const fetchedRoommates = await api.roommates.listByRoom(storedRoomId);
         const user = fetchedRoommates.find(r => r.id === storedUserId) || null;
         if (!user) {
           clearSession();
           return;
         }
         setCurrentUser(user);
-        storage.setCurrentUserProfile(user);
+        api.session.setCurrentUserProfile(user);
         setRoommates(fetchedRoommates);
         setRoomId(storedRoomId);
       } catch (error) {
@@ -76,8 +76,8 @@ const SessionProvider = ({ children }: { children: ReactNode }) => {
 
   const setSession = useCallback(
     async (userId: string, activeRoomId: string) => {
-      storage.setCurrentUser(userId);
-      storage.setCurrentRoom(activeRoomId);
+      api.session.setCurrentUser(userId);
+      api.session.setCurrentRoom(activeRoomId);
       await loadSession(userId, activeRoomId);
     },
     [loadSession]

@@ -1,18 +1,29 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Layout from '@/components/Layout';
-import { useSession } from '@/contexts/SessionContext';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import type { Room, Roommate } from '@/lib/types';
-import { storage } from '@/lib/storage';
-import { toast } from 'sonner';
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Layout from "@/components/layout/Layout";
+import { useSession } from "@/contexts/SessionContext";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import type { Room, Roommate } from "@/lib/types";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 import {
   AlertTriangle,
   Calendar,
@@ -25,11 +36,12 @@ import {
   UserMinus,
   UserRound,
   Users,
-} from 'lucide-react';
+} from "lucide-react";
 
 const Accounts = () => {
   const navigate = useNavigate();
-  const { currentUser, roommates, roomId, loading, refreshSession } = useSession();
+  const { currentUser, roommates, roomId, loading, refreshSession } =
+    useSession();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [leavingRoom, setLeavingRoom] = useState(false);
   const [roomDetails, setRoomDetails] = useState<Room | null>(null);
@@ -39,7 +51,7 @@ const Accounts = () => {
   useEffect(() => {
     if (loading || leavingRoom) return;
     if (!currentUser || !roomId) {
-      navigate('/');
+      navigate("/");
     }
   }, [loading, leavingRoom, currentUser, roomId, navigate]);
 
@@ -53,8 +65,8 @@ const Accounts = () => {
   }, [roommates]);
 
   const getInitials = (name: string) => {
-    const [first, second] = name.split(' ');
-    return `${first?.[0] ?? ''}${second?.[0] ?? ''}`.toUpperCase() || '?';
+    const [first, second] = name.split(" ");
+    return `${first?.[0] ?? ""}${second?.[0] ?? ""}`.toUpperCase() || "?";
   };
 
   const parseDateValue = (value?: string | Date) => {
@@ -66,11 +78,11 @@ const Accounts = () => {
 
   const formatDate = (value?: string | Date) => {
     const parsed = parseDateValue(value);
-    if (!parsed) return 'Unknown';
+    if (!parsed) return "Unknown";
     return parsed.toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -84,7 +96,9 @@ const Accounts = () => {
   };
 
   const selectedUser = useMemo<Roommate | null>(() => {
-    return sortedRoommates.find((roommate) => roommate.id === selectedUserId) ?? null;
+    return (
+      sortedRoommates.find((roommate) => roommate.id === selectedUserId) ?? null
+    );
   }, [sortedRoommates, selectedUserId]);
 
   useEffect(() => {
@@ -102,15 +116,15 @@ const Accounts = () => {
     let isMounted = true;
     setRoomDetails(null);
     setRoomLoading(true);
-    storage
-      .getRoom(roomId)
+    api.rooms
+      .getById(roomId)
       .then((room) => {
         if (isMounted) {
           setRoomDetails(room);
         }
       })
       .catch((error) => {
-        console.error('Failed to load room details', error);
+        console.error("Failed to load room details", error);
         if (isMounted) {
           setRoomDetails(null);
         }
@@ -152,11 +166,17 @@ const Accounts = () => {
       return sorted[0]?.roommate ?? null;
     };
 
-    const managerCreator = pickEarliest(withDates.filter((entry) => entry.roommate.isManager));
+    const managerCreator = pickEarliest(
+      withDates.filter((entry) => entry.roommate.isManager),
+    );
     if (managerCreator) return managerCreator;
     const earliestCreator = pickEarliest(withDates);
     if (earliestCreator) return earliestCreator;
-    return sortedRoommates.find((roommate) => roommate.isManager) ?? currentUser ?? null;
+    return (
+      sortedRoommates.find((roommate) => roommate.isManager) ??
+      currentUser ??
+      null
+    );
   }, [roommates, sortedRoommates, currentUser]);
 
   const handleCopyInviteCode = async () => {
@@ -165,36 +185,36 @@ const Accounts = () => {
     try {
       await navigator.clipboard.writeText(code);
       setInviteCopied(true);
-      toast.success('Invite code copied');
+      toast.success("Invite code copied");
     } catch (error) {
-      console.error('Failed to copy invite code', error);
-      toast.error('Unable to copy invite code');
+      console.error("Failed to copy invite code", error);
+      toast.error("Unable to copy invite code");
     }
   };
 
   const handleLeaveRoom = async () => {
     if (!roomId) return;
     const confirmed = window.confirm(
-      'Leave this room? You will need an invite code to join it again.',
+      "Leave this room? You will need an invite code to join it again.",
     );
     if (!confirmed) return;
     setLeavingRoom(true);
-    storage.clearCurrentRoom();
+    api.session.clearCurrentRoom();
     await refreshSession();
-    toast.success('You left the room');
-    navigate('/room-setup');
+    toast.success("You left the room");
+    navigate("/room-setup");
   };
 
   if (!currentUser || loading) return null;
 
   const memberSummary = selectedUser
     ? (() => {
-      const memberSince = formatDate(selectedUser.createdAt);
-      const daysInRoom = getDaysInRoom(selectedUser.createdAt);
-      const dayLabel = daysInRoom === 1 ? 'Day' : 'Days';
-      return `Member since ${memberSince}${daysInRoom ? ` (${daysInRoom} ${dayLabel})` : ''}`;
-    })()
-    : 'Select a member to view more details.';
+        const memberSince = formatDate(selectedUser.createdAt);
+        const daysInRoom = getDaysInRoom(selectedUser.createdAt);
+        const dayLabel = daysInRoom === 1 ? "Day" : "Days";
+        return `Member since ${memberSince}${daysInRoom ? ` (${daysInRoom} ${dayLabel})` : ""}`;
+      })()
+    : "Select a member to view more details.";
 
   return (
     <Layout
@@ -213,7 +233,9 @@ const Accounts = () => {
                   <Users className="h-5 w-5 text-muted-foreground" />
                   Room members
                 </CardTitle>
-                <CardDescription>{roommates.length} total members</CardDescription>
+                <CardDescription>
+                  {roommates.length} total members
+                </CardDescription>
               </div>
             </CardHeader>
             <CardContent>
@@ -221,17 +243,20 @@ const Accounts = () => {
                 <div className="space-y-3">
                   {sortedRoommates.map((roommate) => {
                     const isCurrent = roommate.id === currentUser.id;
-                    const roleLabel = roommate.isManager ? 'Manager' : 'Roommate';
+                    const roleLabel = roommate.isManager
+                      ? "Manager"
+                      : "Roommate";
                     const isSelected = roommate.id === selectedUserId;
                     return (
                       <button
                         type="button"
                         key={roommate.id}
                         onClick={() => setSelectedUserId(roommate.id)}
-                        className={`flex w-full flex-col gap-2 rounded-xl border px-4 py-3 text-left transition hover:border-primary/40 hover:bg-primary/5 sm:flex-row sm:items-center sm:justify-between ${isSelected
-                          ? 'border-primary/40 bg-primary/10'
-                          : 'border-muted/60 bg-muted/10'
-                          }`}
+                        className={`flex w-full flex-col gap-2 rounded-xl border px-4 py-3 text-left transition hover:border-primary/40 hover:bg-primary/5 sm:flex-row sm:items-center sm:justify-between ${
+                          isSelected
+                            ? "border-primary/40 bg-primary/10"
+                            : "border-muted/60 bg-muted/10"
+                        }`}
                         aria-pressed={isSelected}
                       >
                         <div className="flex items-center gap-3">
@@ -244,7 +269,10 @@ const Accounts = () => {
                             <p className="text-sm font-semibold text-foreground">
                               {roommate.name}
                               {isCurrent && (
-                                <span className="text-xs text-muted-foreground"> (You)</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {" "}
+                                  (You)
+                                </span>
                               )}
                             </p>
                             <p className="text-xs text-muted-foreground">
@@ -295,12 +323,14 @@ const Accounts = () => {
                         Created by
                       </div>
                       <p className="mt-1 text-sm font-semibold text-foreground">
-                        {roomCreator?.name ?? 'Unknown'}
+                        {roomCreator?.name ?? "Unknown"}
                       </p>
                     </div>
                     <div className="rounded-lg border border-muted/60 dark:bg-gray-800 p-3">
                       <div className="flex items-center justify-between gap-2">
-                        <div className="text-xs font-medium text-muted-foreground">Invite code</div>
+                        <div className="text-xs font-medium text-muted-foreground">
+                          Invite code
+                        </div>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
@@ -320,12 +350,12 @@ const Accounts = () => {
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            {inviteCopied ? 'Copied' : 'Copy to clipboard'}
+                            {inviteCopied ? "Copied" : "Copy to clipboard"}
                           </TooltipContent>
                         </Tooltip>
                       </div>
                       <p className="mt-1 font-mono text-sm font-semibold text-foreground">
-                        {roomDetails?.inviteCode ?? 'N/A'}
+                        {roomDetails?.inviteCode ?? "N/A"}
                       </p>
                     </div>
                   </div>
@@ -359,88 +389,103 @@ const Accounts = () => {
                           {selectedUser.id === currentUser.id && (
                             <Badge variant="secondary">You</Badge>
                           )}
-                          <Badge variant={selectedUser.isManager ? 'default' : 'secondary'}>
-                            {selectedUser.isManager ? 'Manager' : 'Roommate'}
+                          <Badge
+                            variant={
+                              selectedUser.isManager ? "default" : "secondary"
+                            }
+                          >
+                            {selectedUser.isManager ? "Manager" : "Roommate"}
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {selectedUser.email || 'No email on file'}
+                          {selectedUser.email || "No email on file"}
                         </p>
                       </div>
                     </div>
 
                     <div className="grid gap-3 sm:grid-cols-3">
                       <div className="rounded-lg border border-muted/60 bg-background/80 p-3">
-                        <p className="text-xs font-medium text-muted-foreground">Member since</p>
+                        <p className="text-xs font-medium text-muted-foreground">
+                          Member since
+                        </p>
                         <p className="text-sm font-semibold text-foreground">
                           {formatDate(selectedUser.createdAt)}
                         </p>
                       </div>
                       <div className="rounded-lg border border-muted/60 bg-background/80 p-3">
-                        <p className="text-xs font-medium text-muted-foreground">Days in room</p>
+                        <p className="text-xs font-medium text-muted-foreground">
+                          Days in room
+                        </p>
                         <p className="text-sm font-semibold text-foreground">
-                          {getDaysInRoom(selectedUser.createdAt) ?? 'N/A'}
+                          {getDaysInRoom(selectedUser.createdAt) ?? "N/A"}
                         </p>
                       </div>
                       <div className="rounded-lg border border-muted/60 bg-background/80 p-3">
-                        <p className="text-xs font-medium text-muted-foreground">Account type</p>
+                        <p className="text-xs font-medium text-muted-foreground">
+                          Account type
+                        </p>
                         <p className="text-sm font-semibold text-foreground">
-                          {selectedUser.isManager ? 'Manager access' : 'Standard access'}
+                          {selectedUser.isManager
+                            ? "Manager access"
+                            : "Standard access"}
                         </p>
                       </div>
                     </div>
 
-                    {currentUser.isManager && selectedUser.id !== currentUser.id && (
-                      <div className="rounded-xl border border-muted/60 bg-background/70 p-4 shadow-sm backdrop-blur">
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-semibold leading-none">Manager actions</p>
-                            <p className="mt-1 text-xs text-muted-foreground">
-                              Manage this member's access and status.
-                            </p>
+                    {currentUser.isManager &&
+                      selectedUser.id !== currentUser.id && (
+                        <div className="rounded-xl border border-muted/60 bg-background/70 p-4 shadow-sm backdrop-blur">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-semibold leading-none">
+                                Manager actions
+                              </p>
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                Manage this member's access and status.
+                              </p>
+                            </div>
+
+                            <Badge variant="secondary" className="gap-1">
+                              <Lock className="h-3.5 w-3.5" />
+                              Coming soon
+                            </Badge>
                           </div>
 
-                          <Badge variant="secondary" className="gap-1">
-                            <Lock className="h-3.5 w-3.5" />
-                            Coming soon
-                          </Badge>
+                          <Separator className="my-3" />
+
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              disabled
+                              className="gap-2"
+                              aria-disabled="true"
+                              title="Coming soon"
+                            >
+                              <Pencil className="h-4 w-4" />
+                              Edit member
+                            </Button>
+
+                            <Button
+                              type="button"
+                              variant="outline"
+                              disabled
+                              className="gap-2"
+                              aria-disabled="true"
+                              title="Coming soon"
+                            >
+                              <UserMinus className="h-4 w-4" />
+                              Remove member
+                            </Button>
+                          </div>
+
+                          <div className="mt-3 rounded-lg border border-dashed border-muted/70 bg-muted/30 px-3 py-2">
+                            <p className="text-xs text-muted-foreground">
+                              Member management actions are not available yet.
+                            </p>
+                          </div>
                         </div>
-
-                        <Separator className="my-3" />
-
-                        <div className="flex flex-wrap gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            disabled
-                            className="gap-2"
-                            aria-disabled="true"
-                            title="Coming soon"
-                          >
-                            <Pencil className="h-4 w-4" />
-                            Edit member
-                          </Button>
-
-                          <Button
-                            type="button"
-                            variant="outline"
-                            disabled
-                            className="gap-2"
-                            aria-disabled="true"
-                            title="Coming soon"
-                          >
-                            <UserMinus className="h-4 w-4" />
-                            Remove member
-                          </Button>
-                        </div>
-
-                        <div className="mt-3 rounded-lg border border-dashed border-muted/70 bg-muted/30 px-3 py-2">
-                          <p className="text-xs text-muted-foreground">
-                            Member management actions are not available yet.
-                          </p>
-                        </div>
-                      </div>
-                    )}
+                      )}
 
                     <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
                       <div className="flex items-start gap-3">
@@ -453,7 +498,8 @@ const Accounts = () => {
                             Room actions
                           </p>
                           <p className="mt-1 text-xs text-muted-foreground">
-                            Leaving will immediately remove this room from your current session.
+                            Leaving will immediately remove this room from your
+                            current session.
                           </p>
                         </div>
                       </div>
@@ -468,7 +514,7 @@ const Accounts = () => {
                         disabled={leavingRoom}
                       >
                         <LogOut className="h-4 w-4" />
-                        {leavingRoom ? 'Leaving room...' : 'Leave room'}
+                        {leavingRoom ? "Leaving room..." : "Leave room"}
                       </Button>
                     </div>
                   </div>

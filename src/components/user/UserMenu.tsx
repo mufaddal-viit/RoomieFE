@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Upload, User } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Button } from './ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,10 +10,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from './ui/dropdown-menu';
+} from '@/components/ui/dropdown-menu';
 import { useSession } from '@/contexts/SessionContext';
 import { userMenuConfig, type UserMenuItem } from '@/config/userMenuConfig';
-import UploadPhotoDialog from '@/components/UploadPhotoDialog';
+import UploadPhotoDialog from '@/components/user/UploadPhotoDialog';
 
 type UserMenuProps = {
   userName?: string;

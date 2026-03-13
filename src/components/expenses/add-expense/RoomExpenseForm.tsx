@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
-import { storage } from '@/lib/storage';
+import { api } from '@/lib/api';
 import type { Roommate } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -51,7 +51,7 @@ const RoomExpenseForm = ({ currentUserId, roomId, roommates }: RoomExpenseFormPr
     e.preventDefault();
     if (isSubmitting) return;
 
-    if (!currentUserId || !storage.getAuthToken()) {
+    if (!currentUserId || !api.session.getAuthToken()) {
       toast.error('You must be signed in to submit an expense');
       return;
     }
@@ -86,7 +86,7 @@ const RoomExpenseForm = ({ currentUserId, roomId, roommates }: RoomExpenseFormPr
     setIsSubmitting(true);
     try {
       //api call to backend 
-      await storage.createExpense({
+      await api.expenses.create({
         roomId,
         description: description.trim(),
         amount: amountValue,

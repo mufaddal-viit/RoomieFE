@@ -7,7 +7,7 @@ import { MonthPicker } from '@/components/ui/monthpicker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Progress } from '@/components/ui/progress';
 import SummaryTable from '@/components/SummaryTable';
-import { storage } from '@/lib/storage';
+import { api } from '@/lib/api';
 import { Expense } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useSession } from '@/contexts/SessionContext';
@@ -64,7 +64,7 @@ const Analytics = () => {
     const loadExpenses = async () => {
       try {
         setLoadingExpenses(true);
-        const roomExpenses = await storage.getExpenses(roomId);
+        const roomExpenses = await api.expenses.listByRoom(roomId);
         setExpenses(roomExpenses);
       } catch (error) {
         console.error(error);

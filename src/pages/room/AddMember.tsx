@@ -1,42 +1,43 @@
-import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Layout from '@/components/Layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { storage } from '@/lib/storage';
-import { toast } from 'sonner';
+import { useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import Layout from "@/components/layout/Layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 const AddMember = () => {
   const navigate = useNavigate();
-  const [roommateId, setRoommateId] = useState('');
-  const [email, setEmail] = useState('');
-  const roomId = storage.getCurrentRoom();
+  const [roommateId, setRoommateId] = useState("");
+  const [email, setEmail] = useState("");
+  const roomId = api.session.getCurrentRoom();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!roomId) {
-      toast.error('No active room found');
+      toast.error("No active room found");
       return;
     }
 
     const trimmedEmail = email.trim();
     const trimmedRoommateId = roommateId.trim();
     if (!trimmedEmail && !trimmedRoommateId) {
-      toast.error('Provide an email or roommate ID');
+      toast.error("Provide an email or roommate ID");
       return;
     }
 
     try {
-      await storage.addMember({
+      await api.roommates.addMember({
         email: trimmedEmail || undefined,
         roommateId: trimmedRoommateId || undefined,
       });
-      toast.success('Member added');
-      navigate('/dashboard');
+      toast.success("Member added");
+      navigate("/dashboard");
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to add member';
+      const message =
+        error instanceof Error ? error.message : "Failed to add member";
       toast.error(message);
     }
   };
@@ -55,7 +56,7 @@ const AddMember = () => {
                 id="email"
                 type="email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="taylor@example.com"
               />
             </div>
@@ -64,7 +65,7 @@ const AddMember = () => {
               <Input
                 id="roommateId"
                 value={roommateId}
-                onChange={e => setRoommateId(e.target.value)}
+                onChange={(e) => setRoommateId(e.target.value)}
                 placeholder="Optional if email is provided"
               />
             </div>
@@ -72,7 +73,12 @@ const AddMember = () => {
               <Button type="submit" className="flex-1">
                 Save
               </Button>
-              <Button type="button" variant="outline" className="flex-1" onClick={() => navigate('/dashboard')}>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => navigate("/dashboard")}
+              >
                 Cancel
               </Button>
             </div>

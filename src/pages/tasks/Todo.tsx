@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 // import { Todo } from 'react-todo-component';
-import Layout from '@/components/Layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useSession } from '@/contexts/SessionContext';
+import Layout from "@/components/layout/Layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSession } from "@/contexts/SessionContext";
 
 const Todos = () => {
   const navigate = useNavigate();
@@ -12,7 +12,7 @@ const Todos = () => {
   useEffect(() => {
     if (loading) return;
     if (!currentUser || !roomId) {
-      navigate('/');
+      navigate("/");
     }
   }, [loading, currentUser, roomId, navigate]);
 
@@ -30,20 +30,16 @@ const Todos = () => {
         <CardHeader>
           <CardTitle>Your Todos</CardTitle>
         </CardHeader>
-      <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground">
-          Use this space to note personal chores, reminders, or follow-ups. This list is local
-          to you and separate from shared expenses.
-        </p>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Use this space to note personal chores, reminders, or follow-ups.
+            This list is local to you and separate from shared expenses.
+          </p>
           {/* <Todo onChange={() => {}} /> */}
-      </CardContent>
-    </Card>
-  </Layout>
+        </CardContent>
+      </Card>
+    </Layout>
   );
 };
 
 export default Todos;
-
-
-
-

@@ -1,40 +1,42 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Spinner } from '@/components/ui/spinner';
-import { storage } from '@/lib/storage';
-import { Expense } from '@/lib/types';
-import { Check, X } from 'lucide-react';
-import { toast } from 'sonner';
-import Layout from '@/components/Layout';
-import { useSession } from '@/contexts/SessionContext';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Spinner } from "@/components/ui/spinner";
+import { api } from "@/lib/api";
+import { Expense } from "@/lib/types";
+import { Check, X } from "lucide-react";
+import { toast } from "sonner";
+import Layout from "@/components/layout/Layout";
+import { useSession } from "@/contexts/SessionContext";
 
 const Approvals = () => {
   const navigate = useNavigate();
   const { currentUser, roomId, loading } = useSession();
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [actionLoading, setActionLoading] = useState<Record<string, 'approve' | 'reject'>>({});
+  const [actionLoading, setActionLoading] = useState<
+    Record<string, "approve" | "reject">
+  >({});
 
   useEffect(() => {
     if (loading) return;
     if (!currentUser || !roomId) {
-      navigate('/');
+      navigate("/");
       return;
     }
     if (!currentUser.isManager) {
-      navigate('/dashboard');
+      navigate("/dashboard");
       return;
     }
 
     const loadExpenses = async () => {
       try {
-        const roomExpenses = await storage.getExpenses(roomId);
+        const roomExpenses = await api.expenses.listByRoom(roomId);
         setExpenses(roomExpenses);
       } catch (error) {
         console.error(error);
-        navigate('/');
+        navigate("/");
       }
     };
 
@@ -45,22 +47,25 @@ const Approvals = () => {
     if (!currentUser) return;
     if (actionLoading[expenseId]) return;
 
-    setActionLoading(prev => ({ ...prev, [expenseId]: 'approve' }));
+    setActionLoading((prev) => ({ ...prev, [expenseId]: "approve" }));
 
-    storage
-      .updateExpenseStatus(expenseId, 'approved', currentUser.id)
+    api.expenses
+      .updateStatus(expenseId, "approved", currentUser.id)
       .then((updated) => {
-        setExpenses(prev =>
-          prev.map(exp => (exp.id === expenseId ? { ...exp, ...updated } : exp))
+        setExpenses((prev) =>
+          prev.map((exp) =>
+            exp.id === expenseId ? { ...exp, ...updated } : exp,
+          ),
         );
-        toast.success('Expense approved successfully');
+        toast.success("Expense approved successfully");
       })
-      .catch(err => {
-        const message = err instanceof Error ? err.message : 'Failed to approve expense';
+      .catch((err) => {
+        const message =
+          err instanceof Error ? err.message : "Failed to approve expense";
         toast.error(message);
       })
       .finally(() => {
-        setActionLoading(prev => {
+        setActionLoading((prev) => {
           const next = { ...prev };
           delete next[expenseId];
           return next;
@@ -72,22 +77,25 @@ const Approvals = () => {
     if (!currentUser) return;
     if (actionLoading[expenseId]) return;
 
-    setActionLoading(prev => ({ ...prev, [expenseId]: 'reject' }));
+    setActionLoading((prev) => ({ ...prev, [expenseId]: "reject" }));
 
-    storage
-      .updateExpenseStatus(expenseId, 'rejected', currentUser.id)
+    api.expenses
+      .updateStatus(expenseId, "rejected", currentUser.id)
       .then((updated) => {
-        setExpenses(prev =>
-          prev.map(exp => (exp.id === expenseId ? { ...exp, ...updated } : exp))
+        setExpenses((prev) =>
+          prev.map((exp) =>
+            exp.id === expenseId ? { ...exp, ...updated } : exp,
+          ),
         );
-        toast.error('Expense rejected');
+        toast.error("Expense rejected");
       })
-      .catch(err => {
-        const message = err instanceof Error ? err.message : 'Failed to reject expense';
+      .catch((err) => {
+        const message =
+          err instanceof Error ? err.message : "Failed to reject expense";
         toast.error(message);
       })
       .finally(() => {
-        setActionLoading(prev => {
+        setActionLoading((prev) => {
           const next = { ...prev };
           delete next[expenseId];
           return next;
@@ -95,7 +103,7 @@ const Approvals = () => {
       });
   };
 
-  const pendingExpenses = expenses.filter(e => e.status === 'pending');
+  const pendingExpenses = expenses.filter((e) => e.status === "pending");
 
   if (!currentUser || !roomId || loading) return null;
 
@@ -127,16 +135,18 @@ const Approvals = () => {
                         <Badge variant="secondary">{expense.category}</Badge>
                       </div>
                       <div className="text-sm text-muted-foreground space-y-1">
-                        <p>Added by: {expense.addedByName || 'Unknown'}</p>
-                        <p>Date: {new Date(expense.date).toLocaleDateString()}</p>
+                        <p>Added by: {expense.addedByName || "Unknown"}</p>
+                        <p>
+                          Date: {new Date(expense.date).toLocaleDateString()}
+                        </p>
                       </div>
                     </div>
                     <div className="flex flex-col gap-3 md:items-end">
                       {(() => {
                         const currentAction = actionLoading[expense.id];
                         const isBusy = Boolean(currentAction);
-                        const isApproving = currentAction === 'approve';
-                        const isRejecting = currentAction === 'reject';
+                        const isApproving = currentAction === "approve";
+                        const isRejecting = currentAction === "reject";
 
                         return (
                           <>
@@ -154,7 +164,10 @@ const Approvals = () => {
                               >
                                 {isApproving ? (
                                   <>
-                                    <Spinner className="mr-2 size-4" aria-hidden="true" />
+                                    <Spinner
+                                      className="mr-2 size-4"
+                                      aria-hidden="true"
+                                    />
                                     Approving...
                                   </>
                                 ) : (
@@ -174,7 +187,10 @@ const Approvals = () => {
                               >
                                 {isRejecting ? (
                                   <>
-                                    <Spinner className="mr-2 size-4" aria-hidden="true" />
+                                    <Spinner
+                                      className="mr-2 size-4"
+                                      aria-hidden="true"
+                                    />
                                     Rejecting...
                                   </>
                                 ) : (

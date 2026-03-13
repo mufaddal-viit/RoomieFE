@@ -1,31 +1,37 @@
-import { useEffect, useState, type KeyboardEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { UserPlus, Shield } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { storage } from '@/lib/storage';
-import { toast } from 'sonner';
-import { ShineBorder } from '@/components/ui/shine-border';
-import { SlideSubmitButton } from '@/components/ui/slide-submit-button';
-import ParticleBackground from '@/components/Particle';
+import { useEffect, useState, type KeyboardEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { UserPlus, Shield } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
+import { ShineBorder } from "@/components/ui/shine-border";
+import { SlideSubmitButton } from "@/components/ui/slide-submit-button";
+import ParticleBackground from "@/components/ui/Particle";
 
 const SignUp = () => {
   const navigate = useNavigate();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showRoomOptions, setShowRoomOptions] = useState(false);
-  const [roomIdToJoin, setRoomIdToJoin] = useState('');
-  const [newRoomName, setNewRoomName] = useState('');
+  const [roomIdToJoin, setRoomIdToJoin] = useState("");
+  const [newRoomName, setNewRoomName] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const currentUser = storage.getCurrentUser();
+    const currentUser = api.session.getCurrentUser();
     if (currentUser) {
-      navigate('/dashboard');
+      navigate("/dashboard");
     }
   }, [navigate]);
 
@@ -33,17 +39,17 @@ const SignUp = () => {
     if (loading) return;
 
     if (!name.trim() || !email.trim() || !password || !confirmPassword) {
-      toast.error('Please fill in all fields');
+      toast.error("Please fill in all fields");
       return;
     }
 
     if (password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+      toast.error("Password must be at least 6 characters");
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
+      toast.error("Passwords do not match");
       return;
     }
 
@@ -52,12 +58,12 @@ const SignUp = () => {
 
     if (showRoomOptions) {
       if (!joinRoomInviteCode && !newRoomNameTrimmed) {
-        toast.error('Choose to join an existing room or create a new one');
+        toast.error("Choose to join an existing room or create a new one");
         return;
       }
 
       if (joinRoomInviteCode && newRoomNameTrimmed) {
-        toast.error('Choose either join or create, not both');
+        toast.error("Choose either join or create, not both");
         return;
       }
     }
@@ -65,11 +71,11 @@ const SignUp = () => {
     try {
       setLoading(true);
 
-      let roomPayload: { roomId?: string; inviteCode?: string } = {};
+      const roomPayload: { roomId?: string; inviteCode?: string } = {};
 
       if (showRoomOptions && newRoomNameTrimmed) {
         // CREATE ROOM FLOW
-        const newRoom = await storage.createRoom(newRoomNameTrimmed);
+        const newRoom = await api.rooms.create(newRoomNameTrimmed);
         roomPayload.roomId = newRoom.id; // pass actual room.id for creation
       } else if (showRoomOptions && joinRoomInviteCode) {
         // JOIN ROOM FLOW
@@ -77,7 +83,7 @@ const SignUp = () => {
       }
 
       // CREATE ROOMMATE
-      await storage.createRoommate({
+      await api.roommates.register({
         name: name.trim(),
         email: email.trim(),
         password,
@@ -85,31 +91,30 @@ const SignUp = () => {
       });
 
       // Authenticate user after creation
-      const user = await storage.authenticate(email.trim(), password);
-      storage.setCurrentUser(user.id);
+      const user = await api.auth.authenticate(email.trim(), password);
+      api.session.setCurrentUser(user.id);
 
       // Determine effective room
       const effectiveRoomId = user.roomId ?? roomPayload.roomId;
       if (effectiveRoomId) {
-        storage.setCurrentRoom(effectiveRoomId);
+        api.session.setCurrentRoom(effectiveRoomId);
       }
 
-      const destination = effectiveRoomId ? '/dashboard' : '/room-setup';
+      const destination = effectiveRoomId ? "/dashboard" : "/room-setup";
 
-      toast.success('Account created');
+      toast.success("Account created");
       navigate(destination);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Could not create account';
+      const message =
+        error instanceof Error ? error.message : "Could not create account";
       toast.error(message);
     } finally {
       setLoading(false);
     }
   };
 
-
-
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key !== 'Enter' || loading) return;
+    if (event.key !== "Enter" || loading) return;
     event.preventDefault();
     void handleSubmit();
   };
@@ -136,13 +141,16 @@ const SignUp = () => {
               Start your calmest roommate budget yet.
             </h1>
             <p className="text-lg text-slate-600">
-              Create an account, then decide whether to join an existing room or start a new
-              one.
+              Create an account, then decide whether to join an existing room or
+              start a new one.
             </p>
           </section>
 
           <Card className="relative overflow-hidden border border-white/40 bg-background/80 shadow-[0_25px_60px_-35px_rgba(14,116,144,0.45)] backdrop-blur-xl">
-            <ShineBorder shineColor={['#A07CFE', '#FE8FB5', '#FFBE7B']} borderWidth={3} />
+            <ShineBorder
+              shineColor={["#A07CFE", "#FE8FB5", "#FFBE7B"]}
+              borderWidth={3}
+            />
             <span
               aria-hidden
               className="pointer-events-none absolute inset-0 bg-gradient-to-br from-sky-500/10 via-transparent to-teal-400/10"
@@ -167,7 +175,7 @@ const SignUp = () => {
                 <Input
                   id="name"
                   value={name}
-                  onChange={e => setName(e.target.value)}
+                  onChange={(e) => setName(e.target.value)}
                   onKeyDown={handleKeyDown}
                   autoComplete="name"
                   placeholder="Alex Johnson"
@@ -183,7 +191,7 @@ const SignUp = () => {
                   id="email"
                   type="email"
                   value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={(e) => setEmail(e.target.value)}
                   onKeyDown={handleKeyDown}
                   autoComplete="email"
                   autoCapitalize="none"
@@ -202,7 +210,7 @@ const SignUp = () => {
                     id="password"
                     type="password"
                     value={password}
-                    onChange={e => setPassword(e.target.value)}
+                    onChange={(e) => setPassword(e.target.value)}
                     onKeyDown={handleKeyDown}
                     autoComplete="new-password"
                     placeholder="********"
@@ -218,7 +226,7 @@ const SignUp = () => {
                     id="confirmPassword"
                     type="password"
                     value={confirmPassword}
-                    onChange={e => setConfirmPassword(e.target.value)}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     onKeyDown={handleKeyDown}
                     autoComplete="new-password"
                     placeholder="********"
@@ -234,12 +242,12 @@ const SignUp = () => {
                   checked={showRoomOptions}
                   aria-controls="room-options-panel"
                   aria-expanded={showRoomOptions}
-                  onCheckedChange={checked => {
+                  onCheckedChange={(checked) => {
                     const isChecked = checked === true;
                     setShowRoomOptions(isChecked);
                     if (!isChecked) {
-                      setRoomIdToJoin('');
-                      setNewRoomName('');
+                      setRoomIdToJoin("");
+                      setNewRoomName("");
                     }
                   }}
                 />
@@ -250,10 +258,11 @@ const SignUp = () => {
 
               <section
                 id="room-options-panel"
-                className={`overflow-hidden motion-safe:transition-[max-height,opacity,transform] motion-safe:duration-300 motion-safe:ease-out motion-reduce:transition-none motion-reduce:translate-y-0 ${showRoomOptions
-                  ? 'max-h-[520px] opacity-100 translate-y-0'
-                  : 'max-h-0 opacity-0 -translate-y-2 pointer-events-none'
-                  }`}
+                className={`overflow-hidden motion-safe:transition-[max-height,opacity,transform] motion-safe:duration-300 motion-safe:ease-out motion-reduce:transition-none motion-reduce:translate-y-0 ${
+                  showRoomOptions
+                    ? "max-h-[520px] opacity-100 translate-y-0"
+                    : "max-h-0 opacity-0 -translate-y-2 pointer-events-none"
+                }`}
                 aria-hidden={!showRoomOptions}
               >
                 <section className="grid grid-cols-1 gap-4 rounded-lg border border-sky-100/70 bg-sky-50/50 p-4 md:grid-cols-2">
@@ -264,7 +273,7 @@ const SignUp = () => {
                     <Input
                       id="roomIdToJoin"
                       value={roomIdToJoin}
-                      onChange={e => setRoomIdToJoin(e.target.value)}
+                      onChange={(e) => setRoomIdToJoin(e.target.value)}
                       onKeyDown={handleKeyDown}
                       placeholder="Enter Room ID"
                       className="h-11 border-white/50 bg-white/70 text-slate-900 placeholder:text-slate-400"
@@ -278,7 +287,7 @@ const SignUp = () => {
                     <Input
                       id="newRoomName"
                       value={newRoomName}
-                      onChange={e => setNewRoomName(e.target.value)}
+                      onChange={(e) => setNewRoomName(e.target.value)}
                       onKeyDown={handleKeyDown}
                       placeholder="Room name"
                       className="h-11 border-white/50 bg-white/70 text-slate-900 placeholder:text-slate-400"
@@ -298,8 +307,11 @@ const SignUp = () => {
               />
 
               <p className="text-center text-sm text-slate-600">
-                Already registered?{' '}
-                <Link to="/" className="font-medium text-sky-700 hover:text-sky-900">
+                Already registered?{" "}
+                <Link
+                  to="/"
+                  className="font-medium text-sky-700 hover:text-sky-900"
+                >
                   Sign in instead
                 </Link>
               </p>

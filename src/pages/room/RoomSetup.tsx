@@ -1,34 +1,40 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ChevronDown } from 'lucide-react';
-import Layout from '@/components/Layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useSession } from '@/contexts/SessionContext';
-import { storage } from '@/lib/storage';
-import { toast } from 'sonner';
+import { useEffect, useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import { ChevronDown } from "lucide-react";
+import Layout from "@/components/layout/Layout";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useSession } from "@/contexts/SessionContext";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 const RoomSetup = () => {
   const navigate = useNavigate();
   const { setSession, currentUser } = useSession();
   const [joinOpen, setJoinOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
-  const [inviteCode, setInviteCode] = useState('');
-  const [roomName, setRoomName] = useState('');
+  const [inviteCode, setInviteCode] = useState("");
+  const [roomName, setRoomName] = useState("");
   const [joining, setJoining] = useState(false);
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    const currentUserId = storage.getCurrentUser();
-    const currentRoomId = storage.getCurrentRoom();
+    const currentUserId = api.session.getCurrentUser();
+    const currentRoomId = api.session.getCurrentRoom();
     if (!currentUserId) {
-      navigate('/');
+      navigate("/");
       return;
     }
     if (currentRoomId) {
-      navigate('/dashboard');
+      navigate("/dashboard");
     }
   }, [navigate]);
 
@@ -36,27 +42,28 @@ const RoomSetup = () => {
     e.preventDefault();
     const code = inviteCode.trim();
     if (!code) {
-      toast.error('Enter a room invite code');
+      toast.error("Enter a room invite code");
       return;
     }
-    const currentUserId = storage.getCurrentUser();
+    const currentUserId = api.session.getCurrentUser();
     if (!currentUserId) {
-      navigate('/');
+      navigate("/");
       return;
     }
 
     try {
       setJoining(true);
-      const room = await storage.joinRoom(code);
+      const room = await api.rooms.join(code);
       await setSession(currentUserId, room.id);
-      if (!storage.getCurrentRoom()) {
-        toast.error('Could not join this room. Please try again.');
+      if (!api.session.getCurrentRoom()) {
+        toast.error("Could not join this room. Please try again.");
         return;
       }
-      toast.success('Joined room');
-      navigate('/dashboard');
+      toast.success("Joined room");
+      navigate("/dashboard");
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to join room';
+      const message =
+        error instanceof Error ? error.message : "Failed to join room";
       toast.error(message);
     } finally {
       setJoining(false);
@@ -67,27 +74,28 @@ const RoomSetup = () => {
     e.preventDefault();
     const name = roomName.trim();
     if (!name) {
-      toast.error('Enter a room name');
+      toast.error("Enter a room name");
       return;
     }
-    const currentUserId = storage.getCurrentUser();
+    const currentUserId = api.session.getCurrentUser();
     if (!currentUserId) {
-      navigate('/');
+      navigate("/");
       return;
     }
 
     try {
       setCreating(true);
-      const room = await storage.createRoom(name);
+      const room = await api.rooms.create(name);
       await setSession(currentUserId, room.id);
-      if (!storage.getCurrentRoom()) {
-        toast.error('Could not finish room setup. Please try again.');
+      if (!api.session.getCurrentRoom()) {
+        toast.error("Could not finish room setup. Please try again.");
         return;
       }
-      toast.success('Room created');
-      navigate('/dashboard');
+      toast.success("Room created");
+      navigate("/dashboard");
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to create room';
+      const message =
+        error instanceof Error ? error.message : "Failed to create room";
       toast.error(message);
     } finally {
       setCreating(false);
@@ -107,7 +115,8 @@ const RoomSetup = () => {
         <CardHeader>
           <CardTitle>You're almost ready</CardTitle>
           <CardDescription>
-            To start tracking expenses, you need to join a room or be added by a roommate.
+            To start tracking expenses, you need to join a room or be added by a
+            roommate.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 text-sm text-muted-foreground">
@@ -126,7 +135,9 @@ const RoomSetup = () => {
         <Card className="self-start">
           <CardHeader>
             <CardTitle>Join existing room</CardTitle>
-            <CardDescription>Enter your invite code to get access.</CardDescription>
+            <CardDescription>
+              Enter your invite code to get access.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <Button
@@ -136,19 +147,21 @@ const RoomSetup = () => {
               aria-controls="join-room-panel"
               aria-expanded={joinOpen}
               onClick={() => {
-                setJoinOpen(prev => !prev);
+                setJoinOpen((prev) => !prev);
                 setCreateOpen(false);
               }}
             >
               Join a room
               <ChevronDown
-                className={`h-4 w-4 transition-transform ${joinOpen ? 'rotate-180' : ''}`}
+                className={`h-4 w-4 transition-transform ${joinOpen ? "rotate-180" : ""}`}
               />
             </Button>
             <div
               id="join-room-panel"
               className={`overflow-hidden motion-safe:transition-[max-height,opacity,transform] motion-safe:duration-300 motion-safe:ease-out motion-reduce:transition-none motion-reduce:translate-y-0 ${
-                joinOpen ? 'max-h-64 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-2 pointer-events-none'
+                joinOpen
+                  ? "max-h-64 opacity-100 translate-y-0"
+                  : "max-h-0 opacity-0 -translate-y-2 pointer-events-none"
               }`}
               aria-hidden={!joinOpen}
             >
@@ -158,13 +171,13 @@ const RoomSetup = () => {
                   <Input
                     id="inviteCode"
                     value={inviteCode}
-                    onChange={e => setInviteCode(e.target.value)}
+                    onChange={(e) => setInviteCode(e.target.value)}
                     placeholder="ROOM-ABC123"
                     disabled={!joinOpen || joining}
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={joining}>
-                  {joining ? 'Joining...' : 'Join room'}
+                  {joining ? "Joining..." : "Join room"}
                 </Button>
               </form>
             </div>
@@ -174,7 +187,9 @@ const RoomSetup = () => {
         <Card className="self-start">
           <CardHeader>
             <CardTitle>Create a new room</CardTitle>
-            <CardDescription>Set up a new room and invite roommates.</CardDescription>
+            <CardDescription>
+              Set up a new room and invite roommates.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <Button
@@ -184,19 +199,21 @@ const RoomSetup = () => {
               aria-controls="create-room-panel"
               aria-expanded={createOpen}
               onClick={() => {
-                setCreateOpen(prev => !prev);
+                setCreateOpen((prev) => !prev);
                 setJoinOpen(false);
               }}
             >
               Create a room
               <ChevronDown
-                className={`h-4 w-4 transition-transform ${createOpen ? 'rotate-180' : ''}`}
+                className={`h-4 w-4 transition-transform ${createOpen ? "rotate-180" : ""}`}
               />
             </Button>
             <div
               id="create-room-panel"
               className={`overflow-hidden motion-safe:transition-[max-height,opacity,transform] motion-safe:duration-300 motion-safe:ease-out motion-reduce:transition-none motion-reduce:translate-y-0 ${
-                createOpen ? 'max-h-64 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-2 pointer-events-none'
+                createOpen
+                  ? "max-h-64 opacity-100 translate-y-0"
+                  : "max-h-0 opacity-0 -translate-y-2 pointer-events-none"
               }`}
               aria-hidden={!createOpen}
             >
@@ -206,13 +223,13 @@ const RoomSetup = () => {
                   <Input
                     id="roomName"
                     value={roomName}
-                    onChange={e => setRoomName(e.target.value)}
+                    onChange={(e) => setRoomName(e.target.value)}
                     placeholder="Main Apartment"
                     disabled={!createOpen || creating}
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={creating}>
-                  {creating ? 'Creating...' : 'Create room'}
+                  {creating ? "Creating..." : "Create room"}
                 </Button>
               </form>
             </div>

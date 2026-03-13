@@ -19,7 +19,8 @@ Roomie Bill Buddy is a web app for splitting household expenses, tracking approv
 1. Install dependencies:
    `npm install`
 2. Create `.env` from `.env.example` and set:
-   - `VITE_API_BASE_URL` (defaults to `/api`; Vite proxies `/api` to `http://localhost:4003`)
+   - `VITE_API_BASE_URL` to `/api` for local development
+   - `API_PROXY_TARGET` to your backend URL, default `http://localhost:4003`
    - `VITE_DEFAULT_ROOM_ID` (optional quick sign-in)
    - `DATABASE_URL` (only needed when running Prisma tasks or the API)
 3. Start the dev server:
@@ -42,7 +43,14 @@ Prisma helpers:
 - `npm run lint`
 
 ## Project Structure
-- `src/pages`: screens and flows
+- `src/pages/auth`: sign-in and sign-up flows
+- `src/pages/dashboard`: dashboard and analytics pages
+- `src/pages/expenses`: expense creation, approvals, and history
+- `src/pages/finances`: accounts, savings, and personal finance views
+- `src/pages/room`: room setup and member management
+- `src/pages/social`: one-to-one and namaz pages
+- `src/pages/tasks`: todo page
+- `src/pages`: shared route entry pages like `Index` and `NotFound`
 - `src/components`: shared UI and feature components
-- `src/lib`: API/storage utilities and types
+- `src/lib`: API utilities and types
 - `src/config`: app configuration

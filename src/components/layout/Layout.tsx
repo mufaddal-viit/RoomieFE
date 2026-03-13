@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import Header from '@/components/Header';
-import { Button } from './ui/button';
-import { ArrowLeft, House } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import Header from "@/components/layout/Header";
+import { Button } from "../ui/button";
+import { ArrowLeft, House } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type LayoutProps = {
   title: string;
@@ -18,11 +18,11 @@ type LayoutProps = {
 const BackToDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  if (location.pathname === '/dashboard') return null;
+  if (location.pathname === "/dashboard") return null;
   return (
     <Button
       variant="ghost"
-      onClick={() => navigate('/dashboard')}
+      onClick={() => navigate("/dashboard")}
       className="h-10 w-10 p-0 [&_svg]:size-5"
     >
       {/* <ArrowLeft className="h-4 w-4 mr-2" /> */}
@@ -80,7 +80,7 @@ const Layout = ({
         userName={userName}
         isManager={isManager}
       />
-      <main className={`container mx-auto px-4 py-6 ${contentClassName ?? ''}`}>
+      <main className={`container mx-auto px-4 py-6 ${contentClassName ?? ""}`}>
         {showSkeleton ? <LayoutSkeleton /> : children}
       </main>
     </div>
