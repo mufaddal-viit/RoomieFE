@@ -8,7 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Progress } from '@/components/ui/progress';
 import SummaryTable from '@/components/SummaryTable';
 import { api } from '@/lib/api';
-import { Expense } from '@/lib/types';
+import { Expense, BankSummary, ContributionPeriod } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useSession } from '@/contexts/SessionContext';
 import { Calendar as CalendarIcon } from 'lucide-react';
@@ -46,6 +46,8 @@ const formatOverviewValue = (format: string, value: number | undefined) => {
 const Analytics = () => {
   const navigate = useNavigate();
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [bankSummary, setBankSummary] = useState<BankSummary | null>(null);
+  const [periods, setPeriods] = useState<ContributionPeriod[]>([]);
   const { currentUser, roommates, roomId, loading } = useSession();
   const [loadingExpenses, setLoadingExpenses] = useState(true);
   const currentMonthDate = useMemo(() => {
@@ -64,8 +66,14 @@ const Analytics = () => {
     const loadExpenses = async () => {
       try {
         setLoadingExpenses(true);
-        const roomExpenses = await api.expenses.listByRoom(roomId);
+        const [roomExpenses, summary, contributionPeriods] = await Promise.all([
+          api.expenses.listByRoom(roomId),
+          api.contributions.getBankSummary(roomId).catch(() => null),
+          api.contributions.listPeriods(roomId).catch(() => []),
+        ]);
         setExpenses(roomExpenses);
+        setBankSummary(summary);
+        setPeriods(contributionPeriods);
       } catch (error) {
         console.error(error);
         navigate('/');
@@ -473,6 +481,41 @@ const Analytics = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Outstanding Dues */}
+      {bankSummary && bankSummary.perPerson.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Outstanding Dues</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SummaryTable
+              headers={[
+                { label: 'Name' },
+                { label: 'Total Owed', className: 'text-right' },
+                { label: 'Total Paid', className: 'text-right' },
+                { label: 'Outstanding', className: 'text-right' },
+              ]}
+              rows={bankSummary.perPerson.map(p => ({
+                key: p.roommateId,
+                cells: [
+                  { content: p.name },
+                  { content: formatMoney(p.totalOwed), className: 'text-right' },
+                  { content: formatMoney(p.totalPaid), className: 'text-right' },
+                  {
+                    content: formatMoney(p.outstandingDues),
+                    className:
+                      p.outstandingDues > 0
+                        ? 'text-right font-medium text-red-600'
+                        : 'text-right font-medium text-green-600',
+                  },
+                ],
+              }))}
+              emptyMessage="No outstanding dues."
+            />
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

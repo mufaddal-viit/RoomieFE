@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
-import { Expense } from "@/lib/types";
+import { Expense, BankSummary } from "@/lib/types";
 import StatsCard from "@/components/StatsCard";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import Analytics from "./Analytics";
 import { dashboardStats } from "@/config/dashboardStats";
 import { dashboardMenuItems } from "@/config/dashboardMenuItems";
 import DashboardSkeleton from "@/components/layout/DashboardSkeleton";
+import { Landmark, TrendingUp, TrendingDown, Receipt } from "lucide-react";
 
 const ExpenseList = lazy(() => import("@/components/expenses/ExpenseList"));
 
@@ -22,6 +23,7 @@ const Dashboard = () => {
     loading: sessionLoading,
   } = useSession();
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [bankSummary, setBankSummary] = useState<BankSummary | null>(null);
   const [loadingExpenses, setLoadingExpenses] = useState(true);
 
   useEffect(() => {
@@ -41,8 +43,12 @@ const Dashboard = () => {
     const loadExpenses = async () => {
       try {
         setLoadingExpenses(true);
-        const roomExpenses = await api.expenses.listByRoom(roomId);
+        const [roomExpenses, summary] = await Promise.all([
+          api.expenses.listByRoom(roomId),
+          api.contributions.getBankSummary(roomId).catch(() => null),
+        ]);
         setExpenses(roomExpenses);
+        setBankSummary(summary);
       } catch (error) {
         console.error(error);
         navigate("/");
@@ -138,6 +144,36 @@ const Dashboard = () => {
             );
           })}
       </div>
+
+      {/* Bank Summary Cards */}
+      {bankSummary && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatsCard
+            title="Bank Balance"
+            value={`AED ${bankSummary.bankBalance.toFixed(2)}`}
+            description={bankSummary.bankBalance >= 0 ? "Surplus" : "Deficit"}
+            icon={<Landmark className="h-4 w-4 text-muted-foreground" />}
+          />
+          <StatsCard
+            title="Total Contributed"
+            value={`AED ${bankSummary.totalContributed.toFixed(2)}`}
+            description="All payments received"
+            icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
+          />
+          <StatsCard
+            title="Total Spent"
+            value={`AED ${bankSummary.totalSpent.toFixed(2)}`}
+            description="Approved expenses"
+            icon={<Receipt className="h-4 w-4 text-muted-foreground" />}
+          />
+          <StatsCard
+            title="Profit / Loss"
+            value={`AED ${bankSummary.profitLoss.toFixed(2)}`}
+            description={bankSummary.profitLoss >= 0 ? "In the green" : "Over budget"}
+            icon={<TrendingDown className="h-4 w-4 text-muted-foreground" />}
+          />
+        </div>
+      )}
 
       {/* <ExpenseStats expenses={approvedExpenses} roommates={roommates} /> */}
       <Suspense

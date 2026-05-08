@@ -50,7 +50,7 @@ const Approvals = () => {
     setActionLoading((prev) => ({ ...prev, [expenseId]: "approve" }));
 
     api.expenses
-      .updateStatus(expenseId, "approved", currentUser.id)
+      .updateStatus(expenseId, "approved")
       .then((updated) => {
         setExpenses((prev) =>
           prev.map((exp) =>
@@ -80,7 +80,7 @@ const Approvals = () => {
     setActionLoading((prev) => ({ ...prev, [expenseId]: "reject" }));
 
     api.expenses
-      .updateStatus(expenseId, "rejected", currentUser.id)
+      .updateStatus(expenseId, "rejected")
       .then((updated) => {
         setExpenses((prev) =>
           prev.map((exp) =>

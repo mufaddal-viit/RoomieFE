@@ -4,7 +4,7 @@ export interface Roommate {
   email?: string;
   password?: string;
   isManager: boolean;
-  roomId: string;
+  roomId: string | null;
   room?: Room;
   createdAt?: Date
   updatedAt?: Date
@@ -45,4 +45,42 @@ export interface Room {
   inviteCode: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ContributionPeriod {
+  id: string;
+  roomId: string;
+  month: number;
+  year: number;
+  amountPerPerson: number;
+  contributions: Contribution[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Contribution {
+  id: string;
+  periodId: string;
+  roommateId: string;
+  roommate?: Pick<Roommate, 'id' | 'name' | 'email'>;
+  amountPaid: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PerPersonBankSummary {
+  roommateId: string;
+  name: string;
+  email: string;
+  totalOwed: number;
+  totalPaid: number;
+  outstandingDues: number;
+}
+
+export interface BankSummary {
+  totalContributed: number;
+  totalSpent: number;
+  bankBalance: number;
+  profitLoss: number;
+  perPerson: PerPersonBankSummary[];
 }

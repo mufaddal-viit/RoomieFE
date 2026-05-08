@@ -38,12 +38,11 @@ const RoomExpenseForm = ({ currentUserId, roomId, roommates }: RoomExpenseFormPr
       ),
     []
   );
-  const [form, setForm] = useState<Record<string, string>>(initialForm);
+  const [form, setForm] = useState<Record<string, string>>(() => ({
+    ...initialForm,
+    memberId: currentUserId,
+  }));
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    setForm(prev => ({ ...prev, memberId: currentUserId }));
-  }, [currentUserId]);
 
   const { description, amount, category, memberId } = form;
 
@@ -85,14 +84,14 @@ const RoomExpenseForm = ({ currentUserId, roomId, roommates }: RoomExpenseFormPr
 
     setIsSubmitting(true);
     try {
-      //api call to backend 
+      // api call to backend using selected member id
       await api.expenses.create({
         roomId,
         description: description.trim(),
         amount: amountValue,
         category,
         date: parsedDate.toISOString(),
-        addedById: currentUserId,
+        addedById: memberId,
       });
       toast.success('Expense added successfully! Waiting for manager approval.');
       setForm({ ...initialForm, memberId: currentUserId });

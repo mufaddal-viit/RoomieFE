@@ -8,6 +8,7 @@ import SignUp from "./pages/auth/SignUp";
 import Dashboard from "./pages/dashboard/Dashboard";
 import AddExpense from "./pages/expenses/AddExpense";
 import Approvals from "./pages/expenses/Approvals";
+import Contributions from "./pages/contributions/Contributions";
 import OneToOne from "./pages/social/OneToOne";
 import Personal from "./pages/finances/Personal";
 import Namaz from "./pages/social/Namaz";
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/add-expense" element={<AddExpense />} />
             <Route path="/approvals" element={<Approvals />} />
+            <Route path="/contributions" element={<Contributions />} />
             <Route path="/one-to-one" element={<OneToOne />} />
             <Route path="/expenses" element={<Expenses />} />
             <Route path="/add-member" element={<AddMember />} />

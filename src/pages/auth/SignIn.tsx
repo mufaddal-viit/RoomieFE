@@ -80,6 +80,10 @@ const SignIn = () => {
   };
 
   const handleQuickSelect = async (roommate: Roommate) => {
+    if (!roommate.roomId) {
+      toast.error("This user is not assigned to a room");
+      return;
+    }
     await setSession(roommate.id, roommate.roomId);
     toast.success(`Signed in as ${roommate.name}`);
     navigate("/dashboard");

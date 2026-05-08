@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react';
 import type { ButtonProps } from '@/components/ui/button';
-import { Clock, ListTodo, Plus, HeartPulse, User, Users, Wallet } from 'lucide-react';
+import { Clock, ListTodo, Plus, HeartPulse, User, Users, Wallet, Landmark } from 'lucide-react';
 
 export type DashboardMenuInput = {
   pendingCount: number;
@@ -27,6 +27,13 @@ export const dashboardMenuItems: DashboardMenuItem[] = [
     path: '/approvals',
     icon: Clock,
     variant: 'secondary',
+    requiresManager: true,
+  },
+  {
+    label: 'Room Bank',
+    path: '/contributions',
+    icon: Landmark,
+    variant: 'outline',
     requiresManager: true,
   },
   {

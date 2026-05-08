@@ -1,5 +1,5 @@
 import axios, { AxiosHeaders, type AxiosInstance, type AxiosRequestConfig } from 'axios';
-import type { Expense, Room, Roommate } from './types';
+import type { Expense, Room, Roommate, ContributionPeriod, Contribution, BankSummary } from './types';
 
 const RAW_API_BASE = import.meta.env.VITE_API_BASE_URL ?? '/api';
 const SESSION_KEYS = {
@@ -311,17 +311,54 @@ const expenses = {
       url: `/rooms/${roomId}/expenses`,
       data: payload,
     }),
-  updateStatus: (expenseId: string, status: Expense['status'], approverId?: string) =>
+  updateStatus: (expenseId: string, status: Expense['status']) =>
     request<Expense>({
       method: 'POST',
       url: `/expenses/${expenseId}/status`,
-      data: { status, approverId },
+      data: { status },
+    }),
+};
+
+type CreatePeriodParams = {
+  roomId: string;
+  month: number;
+  year: number;
+  amountPerPerson: number;
+};
+
+type UpdatePaymentParams = {
+  roomId: string;
+  periodId: string;
+  roommateId: string;
+  amountPaid: number;
+};
+
+const contributions = {
+  getBankSummary: (roomId: string) =>
+    request<BankSummary>({ method: 'GET', url: `/rooms/${roomId}/bank` }),
+
+  listPeriods: (roomId: string) =>
+    request<ContributionPeriod[]>({ method: 'GET', url: `/rooms/${roomId}/contribution-periods` }),
+
+  createPeriod: ({ roomId, ...data }: CreatePeriodParams) =>
+    request<ContributionPeriod>({
+      method: 'POST',
+      url: `/rooms/${roomId}/contribution-periods`,
+      data,
+    }),
+
+  updatePayment: ({ roomId, periodId, roommateId, amountPaid }: UpdatePaymentParams) =>
+    request<Contribution>({
+      method: 'PUT',
+      url: `/rooms/${roomId}/contribution-periods/${periodId}/payments/${roommateId}`,
+      data: { amountPaid },
     }),
 };
 
 export const api = {
   auth,
   client: httpClient,
+  contributions,
   expenses,
   roommates,
   rooms,
